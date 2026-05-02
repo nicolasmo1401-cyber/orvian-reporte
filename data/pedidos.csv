@@ -1,0 +1,2 @@
+id,fecha,cliente,ciudad,dpto,producto,valor,costo,ganancia,recaudo,carrier,guia,fecha_guia,fecha_en_oficina,estado_carrier,intentos_entrega,ult_mov,novedad,nov_activa,estado,caso_status,proceso_dev_completo,fecha_reembolso,monto_reembolsado,alertas_hist,origen
+OC-001,2026-05-01,Juan Pérez,Bogotá,Cundinamarca,Producto Ejemplo,120000,60000,60000,0,Coordinadora,,,, ,0,,,,EN_PROCESO,,,,,,[],Dropi
