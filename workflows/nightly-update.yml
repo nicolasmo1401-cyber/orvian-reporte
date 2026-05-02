@@ -1,0 +1,49 @@
+name: Actualización Nocturna (11 PM Colombia)
+
+# Se ejecuta cada noche a las 11 PM hora Colombia (4 AM UTC)
+# También se puede lanzar manualmente desde GitHub > Actions
+on:
+  schedule:
+    - cron: "0 4 * * *"   # 4:00 AM UTC = 11:00 PM Colombia (UTC-5)
+  workflow_dispatch:       # permite lanzarlo manualmente
+
+permissions:
+  contents: write          # necesario para hacer commit del JSON
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Convertir CSV → JSON
+        run: python scripts/csv_to_json.py
+
+      - name: Guardar snapshot mensual (si es el 1ro del mes)
+        run: |
+          DAY=$(date -u +%d)
+          MONTH=$(date -u +%Y-%m)
+          if [ "$DAY" = "01" ]; then
+            mkdir -p snapshots
+            cp data/pedidos.json "snapshots/pedidos_${MONTH}.json"
+            echo "Snapshot guardado: snapshots/pedidos_${MONTH}.json"
+          fi
+
+      - name: Commit y push del JSON actualizado
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/pedidos.json snapshots/ || true
+          # Solo hace commit si hay cambios reales
+          git diff --staged --quiet || git commit -m "data: actualización nocturna $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
