@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "id": "OC-001",
+    "fecha": "2026-05-01",
+    "cliente": "Juan Pérez",
+    "ciudad": "Bogotá",
+    "dpto": "Cundinamarca",
+    "producto": "Producto Ejemplo",
+    "valor": 120000,
+    "costo": 60000,
+    "ganancia": 60000,
+    "recaudo": 0,
+    "carrier": "Coordinadora",
+    "guia": null,
+    "fecha_guia": null,
+    "fecha_en_oficina": null,
+    "estado_carrier": null,
+    "intentos_entrega": 0,
+    "ult_mov": null,
+    "novedad": null,
+    "nov_activa": false,
+    "estado": "EN_PROCESO",
+    "caso_status": null,
+    "proceso_dev_completo": false,
+    "fecha_reembolso": null,
+    "monto_reembolsado": 0,
+    "alertas_hist": [],
+    "origen": "[]"
+  }
+]
