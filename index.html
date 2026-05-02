@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Orvian Colombia — Control Logístico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --blue:#2563eb;--blue-l:#eff6ff;--blue-b:#bfdbfe;--blue-d:#1d4ed8;
+  --green:#16a34a;--green-l:#f0fdf4;--green-b:#bbf7d0;
+  --red:#dc2626;--red-l:#fef2f2;--red-b:#fecaca;
+  --amber:#d97706;--amber-l:#fffbeb;--amber-b:#fde68a;
+  --teal:#0d9488;--teal-l:#f0fdfa;--teal-b:#99f6e4;
+  --purple:#7c3aed;--purple-l:#f5f3ff;--purple-b:#ddd6fe;
+  --txt:#111827;--txt2:#374151;--muted:#6b7280;
+  --bg:#f9fafb;--white:#ffffff;--border:#e5e7eb;
+  --sw:230px;--th:52px;
+  --r:10px;--rs:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);font-size:13px;line-height:1.55;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sw);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:300;overflow-y:auto}
+.nsl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:14px 16px 4px}
+.ni{display:flex;align-items:center;gap:9px;width:100%;padding:8px 14px;border:none;background:transparent;color:var(--txt2);font-size:12px;font-weight:500;cursor:pointer;text-align:left;border-radius:0;transition:all .15s;font-family:'Inter',sans-serif}
+.ni:hover{background:var(--blue-l);color:var(--blue)}
+.ni.active{background:var(--blue-l);color:var(--blue);font-weight:600;border-right:3px solid var(--blue)}
+.ni .ico{width:20px;text-align:center;font-size:13px;flex-shrink:0}
+.nb{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px}
+.sb-foot{padding:14px 16px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);margin-top:auto}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:var(--sw);right:0;height:var(--th);background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.tb-brand{display:flex;align-items:center;gap:10px}
+.flag{width:28px;height:18px;border-radius:3px;overflow:hidden;display:flex;flex-direction:column;flex-shrink:0}
+.fy{height:33%;background:#FCD116}
+.fr{height:33%;background:#CE1126}
+.brand-name{font-size:13px;font-weight:700;color:var(--txt)}
+.brand-sub{font-size:10px;color:var(--muted)}
+.tb-center{display:flex;align-items:center;gap:8px}
+.demo-chip{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--purple-l);color:var(--purple);border:1px solid var(--purple-b)}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:6px}
+.badge.bg{background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-b)}
+.tb-right{font-size:11px;color:var(--muted)}
+
+/* FILTER BAR */
+.filterbar{position:fixed;top:var(--th);left:var(--sw);right:0;height:46px;background:var(--white);border-bottom:2px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:6px;z-index:250;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow-x:auto}
+.fp{font-size:11px;font-weight:600;padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--txt2);cursor:pointer;white-space:nowrap;transition:all .15s;font-family:'Inter',sans-serif}
+.fp:hover{background:var(--blue-l);border-color:var(--blue-b);color:var(--blue)}
+.fp.factive{background:var(--blue);border-color:var(--blue);color:#fff}
+.fdate{font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--txt);outline:none;font-family:'Inter',sans-serif;cursor:pointer}
+.fl-sep{width:1px;height:20px;background:var(--border);margin:0 3px;flex-shrink:0}
+.fl-lbl{font-size:11px;color:var(--muted);white-space:nowrap;font-weight:500}
+.fnav-btn{font-size:12px;font-weight:700;padding:4px 9px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--txt2);cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;line-height:1}
+.fnav-btn:hover{background:var(--blue-l);border-color:var(--blue-b);color:var(--blue)}
+.fnav-btn:disabled{opacity:.35;cursor:default;pointer-events:none}
+.fday-display{font-size:11px;font-weight:700;color:var(--blue);background:var(--blue-l);border:1px solid var(--blue-b);border-radius:6px;padding:4px 10px;white-space:nowrap;min-width:110px;text-align:center;cursor:pointer;position:relative}
+.fday-input{position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer;border:none;background:transparent}
+#fnav-section{display:flex;align-items:center;gap:5px;flex-shrink:0}
+
+/* MAIN AREA */
+.main{margin-left:var(--sw);margin-top:calc(var(--th) + 46px);padding:24px;min-height:calc(100vh - var(--th) - 46px)}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* SECTION HEADER */
+.sec-hd{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.sec-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.si-blue{background:var(--blue-l);color:var(--blue)}
+.si-green{background:var(--green-l);color:var(--green)}
+.si-red{background:var(--red-l);color:var(--red)}
+.si-amber{background:var(--amber-l);color:var(--amber)}
+.si-teal{background:var(--teal-l);color:var(--teal)}
+.si-purple{background:var(--purple-l);color:var(--purple)}
+.sec-hd h2{font-size:16px;font-weight:700;color:var(--txt)}
+.ss{font-size:11px;color:var(--muted)}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);margin-bottom:18px;overflow:hidden}
+.card-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-ttl{font-size:13px;font-weight:600;color:var(--txt)}
+.card-sub{font-size:11px;color:var(--muted)}
+.card-b{padding:16px 18px}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi-3{grid-template-columns:repeat(3,1fr)}
+.kpi-2{grid-template-columns:repeat(2,1fr)}
+.kpi{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
+.kpi.kb::before{background:var(--blue)}.kpi.kg::before{background:var(--green)}.kpi.kr::before{background:var(--red)}.kpi.ka::before{background:var(--amber)}.kpi.kt::before{background:var(--teal)}.kpi.kp::before{background:var(--purple)}
+.kpi-ico{font-size:20px;margin-bottom:8px;color:var(--muted)}
+.kpi-val{font-size:26px;font-weight:800;line-height:1;margin-bottom:3px}
+.kpi-val.sm{font-size:18px}
+.kpi-lbl{font-size:11px;color:var(--muted);font-weight:500}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.kpi.kb .kpi-val{color:var(--blue)}.kpi.kg .kpi-val{color:var(--green)}.kpi.kr .kpi-val{color:var(--red)}.kpi.ka .kpi-val{color:var(--amber)}.kpi.kt .kpi-val{color:var(--teal)}.kpi.kp .kpi-val{color:var(--purple)}
+
+/* PILLS */
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.03em}
+.pg{background:var(--green-l);color:var(--green);border:1px solid var(--green-b)}
+.pr{background:var(--red-l);color:var(--red);border:1px solid var(--red-b)}
+.pa{background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-b)}
+.pb{background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-b)}
+.pt{background:var(--teal-l);color:var(--teal);border:1px solid var(--teal-b)}
+.pp{background:var(--purple-l);color:var(--purple);border:1px solid var(--purple-b)}
+.pm{background:#f5f5f5;color:#6b7280;border:1px solid #e5e7eb}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+.dtbl{width:100%;border-collapse:collapse;font-size:12px}
+.dtbl th{background:var(--bg);color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:9px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border)}
+.dtbl td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap;color:var(--txt2)}
+.dtbl tr:last-child td{border-bottom:none}
+.dtbl tr:hover td{background:var(--blue-l)}
+.mono{font-family:'JetBrains Mono',monospace,sans-serif;font-size:10px;color:var(--muted)}
+.row-alert td{background:var(--red-l)}
+.row-warn td{background:var(--amber-l)}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px}
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:18px}
+
+/* CHART CARD */
+.ch-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+.ch-lbl{font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:12px}
+
+/* PROGRESS */
+.prog{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
+.prog-fill{height:100%;border-radius:3px}
+
+/* FILTER BAR INLINE */
+.fbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)}
+.fbar input,.fbar select{background:var(--bg);border:1px solid var(--border);color:var(--txt);font-size:11px;padding:5px 9px;border-radius:6px;outline:none;font-family:'Inter',sans-serif}
+.fbar input{width:230px}.fbar input:focus,.fbar select:focus{border-color:var(--blue)}
+
+/* CARRIER BADGE */
+.cb{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.04em}
+.cb-coord{background:var(--blue-l);color:var(--blue)}.cb-inter{background:var(--amber-l);color:var(--amber)}.cb-envia{background:var(--green-l);color:var(--green)}.cb-99{background:var(--purple-l);color:var(--purple)}
+
+/* COPY BTN */
+.copy-btn{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border);color:var(--muted);font-size:10px;padding:3px 9px;border-radius:5px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:all .15s}
+.copy-btn:hover{border-color:var(--blue);color:var(--blue)}
+.copy-btn.copied{border-color:var(--green);color:var(--green);background:var(--green-l)}
+
+/* ALERT CHIP */
+.act-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;white-space:nowrap}
+.act-ok{background:var(--green-l);color:var(--green)}.act-24{background:var(--amber-l);color:var(--amber)}.act-48{background:var(--red-l);color:var(--red)}.act-cas{background:var(--blue-l);color:var(--blue)}.act-cas2{background:var(--purple-l);color:var(--purple)}
+.act-mes-ant{background:#fef9c3;color:#92400e;border:1px solid #fde68a}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border:1px solid var(--border);border-radius:var(--r);width:720px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-ttl{font-size:14px;font-weight:700}.modal-close{cursor:pointer;color:var(--muted);font-size:18px;line-height:1;padding:2px 6px;border-radius:4px;background:none;border:none}
+.modal-close:hover{color:var(--red)}
+.modal-b{padding:20px;overflow-y:auto;flex:1}
+.just-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:16px;font-family:'JetBrains Mono',monospace,sans-serif;font-size:11px;color:var(--txt2);white-space:pre-wrap;line-height:1.7;max-height:380px;overflow-y:auto}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.btn-primary{background:var(--blue);color:#fff;font-size:11px;font-weight:700;padding:7px 16px;border-radius:var(--rs);border:none;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-primary:hover{background:var(--blue-d)}
+.btn-sec{background:transparent;border:1px solid var(--border);color:var(--txt2);font-size:11px;padding:7px 14px;border-radius:var(--rs);cursor:pointer;font-family:'Inter',sans-serif}
+.btn-mark{background:var(--amber-l);border:1px solid var(--amber-b);color:var(--amber);font-size:11px;font-weight:700;padding:7px 14px;border-radius:var(--rs);cursor:pointer;font-family:'Inter',sans-serif}
+
+/* CITY BARS */
+.city-bar{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px}
+.city-bar:last-child{border-bottom:none}
+.city-name{width:140px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt2)}
+.city-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.city-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--teal))}
+.city-num{width:24px;text-align:right;color:var(--muted);font-weight:700}
+
+/* HIST */
+.hist-row{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);font-size:11px}
+.no-rep-badge{display:inline-flex;align-items:center;gap:4px;background:var(--red-l);border:1px solid var(--red-b);border-radius:5px;padding:2px 7px;font-size:9px;font-weight:700;color:var(--red)}
+
+/* TIMELINE (Lección Casos) */
+.tl-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;position:relative;padding-left:4px}
+.tl-dot{width:24px;height:24px;border-radius:50%;background:var(--blue-l);border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:var(--blue)}
+.tl-body{flex:1}.tl-ttl{font-size:12px;font-weight:600}.tl-date{font-size:10px;color:var(--muted)}.tl-desc{font-size:11px;color:var(--txt2);margin-top:3px}
+
+/* MES ANTERIOR BANNER */
+.mes-ant-banner{background:var(--amber-l);border:1px solid var(--amber-b);border-radius:var(--r);padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--amber)}
+.mes-ant-banner strong{color:var(--amber)}
+
+/* DOWNLOAD BTN */
+.dl-btn{display:inline-flex;align-items:center;gap:6px;background:var(--blue-l);border:1px solid var(--blue-b);color:var(--blue);font-size:11px;font-weight:600;padding:7px 14px;border-radius:var(--rs);cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.dl-btn:hover{background:var(--blue);color:#fff}
+
+.foot{text-align:center;padding:24px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);background:var(--white);margin-top:8px}
+
+/* PLAN DEL DÍA */
+.dia-section{margin-bottom:20px}
+.dia-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:var(--r) var(--r) 0 0;font-size:12px;font-weight:700}
+.dia-header.dh-red{background:var(--red-l);color:var(--red);border:1px solid var(--red-b)}
+.dia-header.dh-amber{background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-b)}
+.dia-header.dh-blue{background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-b)}
+.dia-header.dh-green{background:var(--green-l);color:var(--green);border:1px solid var(--green-b)}
+.dia-header.dh-purple{background:var(--purple-l);color:var(--purple);border:1px solid var(--purple-b)}
+.dia-header.dh-risk{background:linear-gradient(135deg,#fff1f2,#fffbeb);color:#b91c1c;border:1px solid #fca5a5}
+.dia-cnt{font-size:18px;font-weight:800}
+.dia-body{border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);overflow:hidden}
+.dia-row{display:grid;grid-template-columns:54px 1fr 1fr 1fr 200px;gap:10px;align-items:start;padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px}
+.dia-row:last-child{border-bottom:none}
+.dia-row:hover{background:var(--bg)}
+.dia-row.row-risk{background:linear-gradient(90deg,#fff5f5,var(--white))}
+.dia-empty{padding:18px 16px;text-align:center;color:var(--muted);font-size:12px;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);background:var(--bg)}
+.kpi-semana{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+/* risk tags */
+.rtag{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin:1px;white-space:nowrap}
+.rtag-red{background:#fff5f5;color:#dc2626;border:1px solid #fecaca}
+.rtag-amber{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
+.rtag-gray{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb}
+/* carrier event pill */
+.ev-pill{display:inline-block;font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;margin-top:2px}
+.ev-pill.ep-bod{background:#fffbeb;color:#d97706;border-color:#fde68a}
+.ev-pill.ep-fal{background:#fff5f5;color:#dc2626;border-color:#fecaca}
+.ev-pill.ep-rut{background:#f0fdf4;color:#16a34a;border-color:#bbf7d0}
+.kpi-semana{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
+
+/* ── TIMELINE MODAL ── */
+.tl-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;display:none;align-items:center;justify-content:center}
+.tl-overlay.open{display:flex}
+.tl-modal{background:var(--white);border-radius:14px;width:580px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden}
+.tl-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.tl-title{font-size:13px;font-weight:700;color:var(--txt)}
+.tl-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.tl-close{background:none;border:none;font-size:16px;cursor:pointer;color:var(--muted);padding:4px 8px;border-radius:6px}
+.tl-close:hover{background:var(--bg);color:var(--txt)}
+.tl-body{overflow-y:auto;padding:20px 24px;flex:1}
+.tl-line{position:relative;padding-left:28px}
+.tl-line::before{content:'';position:absolute;left:9px;top:0;bottom:0;width:2px;background:var(--border)}
+.tl-event{position:relative;margin-bottom:18px}
+.tl-event:last-child{margin-bottom:0}
+.tl-dot{position:absolute;left:-23px;top:3px;width:14px;height:14px;border-radius:50%;border:2px solid var(--white);display:flex;align-items:center;justify-content:center;font-size:7px;flex-shrink:0}
+.td-blue{background:var(--blue);color:#fff}
+.td-green{background:var(--green);color:#fff}
+.td-amber{background:var(--amber);color:#fff}
+.td-red{background:var(--red);color:#fff}
+.td-purple{background:var(--purple);color:#fff}
+.td-gray{background:#94a3b8;color:#fff}
+.tl-ts{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:3px}
+.tl-desc{font-size:12px;font-weight:600;color:var(--txt);line-height:1.4}
+.tl-detail{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4}
+.tl-chip{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px}
+.tc-warn{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
+.tc-err{background:#fff5f5;color:#dc2626;border:1px solid #fecaca}
+.tc-ok{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.tc-info{background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe}
+.tl-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+
+/* ── LOG DE ACCIONES ── */
+.log-table{width:100%;border-collapse:collapse;font-size:11px}
+.log-table th{background:var(--bg);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;text-align:left;border-bottom:2px solid var(--border)}
+.log-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.log-table tr:hover td{background:var(--blue-l)}
+.log-accion{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px}
+.la-cas{background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe}
+.la-risk{background:#fff5f5;color:#dc2626;border:1px solid #fecaca}
+.la-prov{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
+.la-ofic{background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe}
+.la-trz{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.log-empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="nsl">Hoy</div>
+  <button class="ni" onclick="nav('plandia',this)"><span class="ico"><i class="fa-solid fa-calendar-check"></i></span>Plan del Día <span class="nb" id="bdg-dia" style="background:var(--amber)">0</span></button>
+  <button class="ni" onclick="nav('trazabilidad',this)"><span class="ico"><i class="fa-solid fa-timeline"></i></span>Trazabilidad <span class="nb" id="bdg-trz" style="background:var(--teal)">0</span></button>
+  <div class="nsl">Dashboard</div>
+  <button class="ni active" onclick="nav('dashboard',this)"><span class="ico"><i class="fa-solid fa-house"></i></span>Resumen General</button>
+  <button class="ni" onclick="nav('ordenes',this)"><span class="ico"><i class="fa-solid fa-list-check"></i></span>Estado de Órdenes</button>
+  <div class="nsl">Alertas</div>
+  <button class="ni" onclick="nav('alertas',this)"><span class="ico"><i class="fa-solid fa-triangle-exclamation"></i></span>Pedidos de Alerta <span class="nb" id="bdg-alerta">0</span></button>
+  <button class="ni" onclick="nav('guias',this)"><span class="ico"><i class="fa-solid fa-bell"></i></span>Protocolo Guías <span class="nb" id="bdg-guias">0</span></button>
+  <div class="nsl">Finanzas</div>
+  <button class="ni" onclick="nav('wallet',this)"><span class="ico"><i class="fa-solid fa-circle-dollar-to-slot"></i></span>Trazabilidad Dinero</button>
+  <button class="ni" onclick="nav('devoluciones',this)"><span class="ico"><i class="fa-solid fa-rotate-left"></i></span>Devoluciones</button>
+  <button class="ni" onclick="nav('indem',this)"><span class="ico"><i class="fa-solid fa-scale-balanced"></i></span>Indemnizaciones</button>
+  <div class="nsl">Análisis</div>
+  <button class="ni" onclick="nav('transportadoras',this)"><span class="ico"><i class="fa-solid fa-truck"></i></span>Transportadoras</button>
+  <button class="ni" onclick="nav('ciudades',this)"><span class="ico"><i class="fa-solid fa-map"></i></span>Ciudad × Carrier</button>
+  <button class="ni" onclick="nav('leccion',this)"><span class="ico"><i class="fa-solid fa-book-open"></i></span>Lección Casos</button>
+  <div class="sb-foot">Orvian Colombia · v4.0<br>Actualizado: <span id="sb-ts">—</span></div>
+</aside>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-brand">
+    <div class="flag"><div class="fy"></div><div style="height:34%;background:#003087"></div><div class="fr"></div></div>
+    <div><div class="brand-name">Orvian Colombia</div><div class="brand-sub">Sistema Logístico</div></div>
+  </div>
+  <div class="tb-center">
+    <span class="demo-chip"><i class="fa-solid fa-star" style="font-size:9px"></i> v4.0</span>
+    <span class="badge bg" id="efect-topbar">— % efectividad</span>
+  </div>
+  <div class="tb-right"><span id="tb-date"></span></div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filterbar">
+  <span class="fl-lbl">Período:</span>
+  <button class="fp" onclick="setPreset('today')">Hoy</button>
+  <button class="fp" onclick="setPreset('week')">Esta semana</button>
+  <button class="fp factive" onclick="setPreset('month')">Este mes</button>
+  <button class="fp" onclick="setPreset('lastmonth')">Mes anterior</button>
+  <button class="fp" onclick="setPreset('q3')">Últimos 3 meses</button>
+  <button class="fp" onclick="setPreset('all')">Todo el historial</button>
+  <div class="fl-sep"></div>
+  <span class="fl-lbl">Desde:</span>
+  <input type="date" class="fdate" id="f-from" onchange="setCustomFilter()">
+  <span class="fl-lbl">Hasta:</span>
+  <input type="date" class="fdate" id="f-to" onchange="setCustomFilter()">
+  <div class="fl-sep"></div>
+  <div id="fnav-section">
+    <span class="fl-lbl">Día:</span>
+    <button class="fnav-btn" id="fnav-prev" onclick="navDay(-1)" title="Día anterior">&#8592;</button>
+    <div class="fday-display" id="fday-label">
+      <span id="fday-text">— elegir —</span>
+      <input type="date" class="fday-input" id="fday-picker" onchange="pickDay(this.value)">
+    </div>
+    <button class="fnav-btn" id="fnav-next" onclick="navDay(1)" title="Día siguiente">&#8594;</button>
+  </div>
+  <div class="fl-sep"></div>
+  <span id="f-count-label" style="font-size:11px;color:var(--blue);font-weight:700"></span>
+</div>
+
+<div class="main">
+
+<!-- PLAN DEL DÍA -->
+<div id="tab-plandia" class="tab-content">
+  <div class="sec-hd">
+    <div class="sec-ico si-amber"><i class="fa-solid fa-calendar-check"></i></div>
+    <div><h2>Plan del Día</h2><div class="ss" id="plandia-fecha">Cargando fecha…</div></div>
+    <div style="margin-left:auto">
+      <button class="dl-btn" onclick="buildPlanDia()" style="font-size:11px"><i class="fa-solid fa-rotate"></i> Actualizar</button>
+    </div>
+  </div>
+
+  <!-- Resumen rápido del día -->
+  <div class="kpi-semana" id="kpi-dia"></div>
+
+  <!-- BLOQUE 1: Urgente — sin guía >48h -->
+  <div class="dia-section">
+    <div class="dia-header dh-red"><span><i class="fa-solid fa-circle-xmark" style="margin-right:7px"></i>URGENTE — Sin guía más de 48h → Ticket Dropi</span><span class="dia-cnt" id="cnt-48">0</span></div>
+    <div class="dia-body" id="bloque-48"></div>
+  </div>
+
+  <!-- BLOQUE 2: Seguimiento — sin guía 24-48h -->
+  <div class="dia-section">
+    <div class="dia-header dh-amber"><span><i class="fa-solid fa-clock" style="margin-right:7px"></i>SEGUIMIENTO — Sin guía entre 24 y 48h → Contactar proveedor</span><span class="dia-cnt" id="cnt-24">0</span></div>
+    <div class="dia-body" id="bloque-24"></div>
+  </div>
+
+  <!-- BLOQUE 3: En tránsito demorado -->
+  <div class="dia-section">
+    <div class="dia-header dh-blue"><span><i class="fa-solid fa-headset" style="margin-right:7px"></i>EN TRÁNSITO DEMORADO — Más de 5 días → Preguntar CAS</span><span class="dia-cnt" id="cnt-cas">0</span></div>
+    <div class="dia-body" id="bloque-cas"></div>
+  </div>
+
+  <!-- BLOQUE 3b: En oficina -->
+  <div class="dia-section" id="sec-oficina">
+    <div class="dia-header dh-amber"><span><i class="fa-solid fa-building" style="margin-right:7px"></i>EN OFICINA — Cliente debe recoger · Riesgo retorno si no recoge en 48h</span><span class="dia-cnt" id="cnt-oficina">0</span></div>
+    <div class="dia-body" id="bloque-oficina"></div>
+  </div>
+
+  <!-- BLOQUE 3c: Riesgo de devolución probable -->
+  <div class="dia-section" id="sec-riesgo">
+    <div class="dia-header dh-risk"><span><i class="fa-solid fa-triangle-exclamation" style="margin-right:7px"></i>RIESGO DEVOLUCIÓN — Historial de alertas indica retorno probable</span><span class="dia-cnt" id="cnt-riesgo">0</span></div>
+    <div class="dia-body" id="bloque-riesgo"></div>
+  </div>
+
+  <!-- BLOQUE 4: Devoluciones activas -->
+  <div class="dia-section">
+    <div class="dia-header dh-purple"><span><i class="fa-solid fa-rotate-left" style="margin-right:7px"></i>DEVOLUCIONES ACTIVAS → Gestionar indemnización</span><span class="dia-cnt" id="cnt-dev">0</span></div>
+    <div class="dia-body" id="bloque-dev"></div>
+  </div>
+
+  <!-- BLOQUE 5: Novedades sin resolver -->
+  <div class="dia-section">
+    <div class="dia-header dh-red" style="border-radius:var(--r) var(--r) 0 0"><span><i class="fa-solid fa-triangle-exclamation" style="margin-right:7px"></i>NOVEDADES SIN RESOLVER → Gestionar con carrier</span><span class="dia-cnt" id="cnt-nov">0</span></div>
+    <div class="dia-body" id="bloque-nov"></div>
+  </div>
+
+  <!-- BLOQUE 6: En proceso normal — monitorear -->
+  <div class="dia-section">
+    <div class="dia-header dh-green"><span><i class="fa-solid fa-eye" style="margin-right:7px"></i>EN PROCESO NORMAL — Monitorear hoy</span><span class="dia-cnt" id="cnt-ok">0</span></div>
+    <div class="dia-body" id="bloque-ok"></div>
+  </div>
+</div>
+
+<!-- TRAZABILIDAD -->
+<div id="tab-trazabilidad" class="tab-content">
+  <div class="sec-hd">
+    <div class="sec-ico si-teal"><i class="fa-solid fa-timeline"></i></div>
+    <div><h2>Trazabilidad de Gestión</h2><div class="ss">Registro de cada acción tomada — evidencia de trabajo de la asesora</div></div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="dl-btn" onclick="exportLog()" style="font-size:11px;background:var(--teal-l);color:var(--teal);border-color:var(--teal-b)"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+      <button class="dl-btn" onclick="clearLog()" style="font-size:11px;color:var(--red)"><i class="fa-solid fa-trash"></i> Limpiar log</button>
+    </div>
+  </div>
+  <div id="trz-kpis" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px"></div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg)">
+      <div style="font-size:12px;font-weight:700;color:var(--txt)"><i class="fa-solid fa-clipboard-list" style="color:var(--teal);margin-right:6px"></i>Log de acciones — <span id="log-count">0</span> registros</div>
+      <div style="display:flex;gap:6px">
+        <select id="log-filter-accion" onchange="buildTrazabilidad()" style="font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white)">
+          <option value="">Todas las acciones</option>
+          <option value="Ticket Dropi">Ticket Dropi</option>
+          <option value="Msg Proveedor">Msg Proveedor</option>
+          <option value="Msg CAS">Msg CAS</option>
+          <option value="Alertar carrier">Alertar carrier</option>
+          <option value="Avisar cliente">Avisar cliente</option>
+          <option value="Justificación">Justificación</option>
+        </select>
+        <select id="log-filter-hoy" onchange="buildTrazabilidad()" style="font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white)">
+          <option value="">Todo el historial</option>
+          <option value="hoy">Solo hoy</option>
+          <option value="semana">Esta semana</option>
+        </select>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="log-table" id="log-tabla">
+        <thead><tr>
+          <th>Fecha y hora</th><th>Pedido</th><th>Cliente</th><th>Ciudad</th>
+          <th>Acción tomada</th><th>Carrier</th><th>Estado al momento</th>
+        </tr></thead>
+        <tbody id="log-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LÍNEA DE TIEMPO -->
+<div class="tl-overlay" id="tl-overlay" onclick="if(event.target===this)closeTL()">
+  <div class="tl-modal">
+    <div class="tl-head">
+      <div>
+        <div class="tl-title" id="tl-modal-title">Línea de tiempo</div>
+        <div class="tl-sub" id="tl-modal-sub"></div>
+      </div>
+      <button class="tl-close" onclick="closeTL()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="tl-body"><div class="tl-line" id="tl-events"></div></div>
+    <div class="tl-foot">
+      <button class="btn-sec" onclick="closeTL()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="tab-content active">
+  <div class="sec-hd"><div class="sec-ico si-blue"><i class="fa-solid fa-house"></i></div><div><h2>Dashboard General</h2><div class="ss">Resumen ejecutivo de operaciones</div></div></div>
+  <div id="efect-banner" style="margin-bottom:20px"></div>
+  <div class="kpi-grid" id="kpi-dash"></div>
+  <div class="g3" style="margin-bottom:18px">
+    <div class="card" style="margin-bottom:0"><div class="card-h"><div class="card-ttl"><i class="fa-solid fa-rotate-left" style="color:var(--red);margin-right:6px"></i>Devoluciones urgentes</div><span class="nb" id="ap-cnt-dev" style="margin-left:0">0</span></div><div id="ap-dev" style="padding:4px 0"></div></div>
+    <div class="card" style="margin-bottom:0"><div class="card-h"><div class="card-ttl"><i class="fa-solid fa-triangle-exclamation" style="color:var(--amber);margin-right:6px"></i>Novedades activas</div><span class="nb" id="ap-cnt-nov" style="margin-left:0">0</span></div><div id="ap-nov" style="padding:4px 0"></div></div>
+    <div class="card" style="margin-bottom:0"><div class="card-h"><div class="card-ttl"><i class="fa-solid fa-circle-dollar-to-slot" style="color:var(--green);margin-right:6px"></i>Top recaudos</div><span id="ap-cnt-rec" style="font-size:11px;color:var(--green);font-weight:700"></span></div><div id="ap-rec" style="padding:4px 0"></div></div>
+  </div>
+  <div class="g21">
+    <div class="ch-card"><div class="ch-lbl"><i class="fa-solid fa-chart-line" style="color:var(--blue);margin-right:6px"></i>Ingresos diarios (COP)</div><canvas id="ch-trend" height="90"></canvas></div>
+    <div class="ch-card"><div class="ch-lbl"><i class="fa-solid fa-chart-pie" style="color:var(--blue);margin-right:6px"></i>Estados de órdenes</div><canvas id="ch-estados" height="160"></canvas></div>
+  </div>
+  <div class="g3">
+    <div class="ch-card"><div class="ch-lbl"><i class="fa-solid fa-truck" style="margin-right:6px"></i>Ingresos por carrier</div><canvas id="ch-carrier-rev" height="140"></canvas></div>
+    <div class="ch-card"><div class="ch-lbl"><i class="fa-solid fa-boxes-stacked" style="margin-right:6px"></i>Órdenes por carrier</div><canvas id="ch-carrier-ord" height="140"></canvas></div>
+    <div class="ch-card"><div class="ch-lbl"><i class="fa-solid fa-location-dot" style="margin-right:6px"></i>Top 8 ciudades</div><canvas id="ch-cities" height="140"></canvas></div>
+  </div>
+</div>
+
+<!-- ÓRDENES -->
+<div id="tab-ordenes" class="tab-content">
+  <div class="sec-hd"><div class="sec-ico si-blue"><i class="fa-solid fa-list-check"></i></div><div><h2>Estado de Órdenes</h2><div class="ss">Tabla completa filtrable</div></div></div>
+  <div class="card">
+    <div class="card-h"><div class="card-ttl">Todas las órdenes</div><div class="card-sub" id="ord-sub"></div></div>
+    <div class="fbar">
+      <input type="text" id="f-txt" placeholder="Buscar pedido, cliente, ciudad, guía..." oninput="buildOrdenes()">
+      <select id="f-est" onchange="buildOrdenes()">
+        <option value="">Todos los estados</option>
+        <option value="ENTREGADO">Entregado</option>
+        <option value="CANCELADO">Cancelado</option>
+        <option value="DEVOLUCION">Devolución</option>
+        <option value="EN_PROCESO">En proceso</option>
+      </select>
+      <select id="f-car" onchange="buildOrdenes()">
+        <option value="">Todas las carriers</option>
+        <option value="COORDINADORA">Coordinadora</option>
+        <option value="INTERRAPIDISIMO">Interrapidísimo</option>
+        <option value="ENVIA">Envia</option>
+        <option value="99MINUTOS">99Minutos</option>
+      </select>
+      <span style="font-size:11px;color:var(--muted);margin-left:auto" id="ord-cnt"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="dtbl">
+        <thead><tr><th>Pedido</th><th>Fecha</th><th>Cliente</th><th>Ciudad</th><th>Valor</th><th>Estado</th><th>Guía</th><th>Carrier</th><th>Últ. Mov.</th><th>Novedad</th><th>Ganancia</th><th>Caso</th></tr></thead>
+        <tbody id="tbl-ordenes"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ALERTAS -->
+<div id="tab-alertas" class="tab-content">
+  <div class="sec-hd"><div class="sec-ico si-red"><i class="fa-solid fa-triangle-exclamation"></i></div><div><h2>Pedidos de Alerta</h2><div class="ss">Novedades activas — siempre muestra TODO el historial sin importar filtro de fecha</div></div></div>
+  <div class="mes-ant-banner" id="mesant-alertas" style="display:none"><i class="fa-solid fa-arrow-left-long"></i><div><strong>Guías del mes anterior rodando:</strong> los pedidos de abajo tienen novedad activa o están en proceso desde periodos anteriores. Aunque el filtro de fecha está activo, estas órdenes se muestran siempre porque aún están abiertas.</div></div>
+  <div class="kpi-grid kpi-3" id="kpi-alertas"></div>
+  <div class="card">
+    <div class="card-h"><div class="card-ttl">Historial completo de novedades</div><div class="card-sub" id="nov-sub"></div></div>
+    <div class="tbl-wrap">
+      <table class="dtbl">
+        <thead><tr><th>Pedido</th><th>Fecha</th><th>Cliente</th><th>Ciudad</th><th>Carrier</th><th>Novedad</th><th>Estado</th></tr></thead>
+        <tbody id="tbl-alertas"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- PROTOCOLO GUÍAS -->
+<div id="tab-guias" class="tab-content">
+  <div class="sec-hd"><div class="sec-ico si-amber"><i class="fa-solid fa-bell"></i></div><div><h2>Protocolo Guías</h2><div class="ss">Plan de acción — siempre muestra órdenes abiertas sin importar el mes</div></div></div>
+  <div class="mes-ant-banner" id="mesant-guias" style="display:none"><i class="fa-solid fa-rotate"></i><div><strong>Guías del mes anterior aún en ruta:</strong> estas órdenes fueron creadas en meses anteriores pero siguen activas. Se muestran aquí independientemente del filtro de fecha para que no se pierdan de vista.</div></div>
+  <div class="kpi-grid" id="kpi-guias"></div>
+  <div class="card">
+    <div class="card-h"><div class="card-ttl">Plan de acción por guía</div><div class="card-sub">Actualizado automáticamente según tiempo transcurrido</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;border-bottom:1px solid var(--border);background:var(--bg)">
+      <div style="padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Pedido / Cliente</div>
+      <div style="padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Carrier / Guía</div>
+      <div style="padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Tiempo / Estado</div>
+      <div style="padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Acción + Plantilla</div>
+    </div>
+    <div id="pac-rows"></div>
+  </div>
+</div>
+
+<!-- WALLET -->
+<div id="tab-wallet" class="tab-content">
+  <div class="sec-hd"><div class="sec-ico si-green"><i class="fa-solid fa-circle-dollar-to-slot"></i></div><div><h2>Trazabilidad de Dinero</h2><div class="ss">Entregas con recaudo — pendiente desembolso</div></div></div>
+  <div class="kpi-grid" id="kpi-wallet"></div>
+  <div class="card">
+    <div class="card-h"><div class="card-ttl">Entregas CON RECAUDO</div><div class="card-sub">Verificar en app.dropi.co</div></div>
+    <div class="tbl-wrap">
+      <table class="dtbl">
+        <thead><tr><th>#</th><th>Pedido</th><th>Fecha</th><th>Cliente</th><th>Ciudad</th><th>Carrier</th><th>Guía</th><th>Valor recaudo</th><th>Ganancia</th></tr></thead>
+        <tbody id="tbl-wallet"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- DEVOLUCIONES -->
+<div id="tab-devoluciones" class="tab-content">
+  <div class="sec-hd"><div class="sec-ico si-red"><i class="fa-solid fa-rotate-left"></i></div><div><h2>Devoluciones</h2><div class="ss">Capital en riesgo — siempre visible sin importar filtro de fecha</div></div></div>
+  <div class="mes-ant-banner" id="mesant-dev" style="display:none"><i class="fa-solid fa-calendar-xmark"></i><div><strong>Devoluciones de meses anteriores incluidas:</strong> las devoluciones se muestran siempre porque el dinero sigue en riesgo hasta que Dropi las gestione.</div></div>
+  <div class="kpi-grid" id="kpi-dev"></div>
+  <div class="card" style="background:var(--red-l);border-color:var(--red-b)">
+    <div class="card-b" style="font-size:12px;color:var(--red)"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i><strong>Plazo Dropi:</strong> 30 días desde el incidente. Ir a <strong>app.dropi.co/dashboard/warranties</strong> o contactar soporte.</div>
+  </div>
+  <div class="card">
+    <div class="card-h"><div class="card-ttl">Trazabilidad de devoluciones</div></div>
+    <div class="tbl-wrap">
+      <table class="dtbl">
+        <thead><tr><th>Pedido</th><th>Fecha</th><th>Cliente</th><th>Ciudad</th><th>Carrier</th><th>Valor</th><th>Últ. Mov.</th><th>Días</th><th>Nivel</th><th>Acción</th></tr></thead>
+        <tbody id="tbl-dev"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- INDEMNIZACIONES -->
+<div id="tab-indem" class="tab-content">
+  <div class="sec-hd"><div class="sec-ico si-purple"><i class="fa-solid fa-scale-balanced"></i></div><div><h2>Indemnizaciones</h2><div class="ss">Justificaciones CAS / Dropi Garantías</div></div></div>
+  <div class="kpi-grid" id="kpi-indem"></div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-h"><div class="card-ttl">Devoluciones — Justificación automática</div><div class="card-sub">Clic en cada fila para ver y copiar la justificación</div></div>
+    <div id="indem-pac"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><div class="card-ttl">Historial de indemnizaciones presentadas</div><div class="card-sub">Guías NO repetir</div></div>
+    <div id="hist-no-rep"></div>
+    <div class="tbl-wrap">
+      <table class="dtbl">
+        <thead><tr><th>Guía</th><th>Pedido</th><th>Cliente</th><th>Carrier</th><th>Valor</th><th>Fecha presentación</th><th>Estado reclamo</th><th>Obs.</th></tr></thead>
+        <tbody id="tbl-hist"></tbody>
+      </table>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border)">
+      <button class="dl-btn" onclick="downloadHistorialIndem()"><i class="fa-solid fa-download"></i> Descargar Historial (.xlsx)</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSPORTADORAS -->
+<div id="tab-transportadoras" class="tab-content">
+  <div class="sec-hd"><div class="sec-ico si-teal"><i class="fa-solid fa-truck"></i></div><div><h2>Transportadoras</h2><div class="ss">Rendimiento comparativo por carrier</div></div></div>
+  <div class="kpi-grid" id="carr-cards"></div>
+  <div class="g2">
+    <div class="ch-card"><div class="ch-lbl">Estados por carrier</div><canvas id="ch-car-est" height="160"></canvas></div>
+    <div class="ch-card"><div class="ch-lbl">Ganancia neta por carrier (COP)</div><canvas id="ch-car-gan" height="160"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><div class="card-ttl">Tabla comparativa</div></div>
+    <div class="tbl-wrap"><table class="dtbl" id="tbl-carriers"></table></div>
+  </div>
+</div>
+
+<!-- CIUDADES -->
+<div id="tab-ciudades" class="tab-content">
+  <div class="sec-hd"><div class="sec-ico si-teal"><i class="fa-solid fa-map"></i></div><div><h2>Ciudad × Carrier</h2><div class="ss">Análisis geográfico de operaciones</div></div></div>
+  <div class="g2">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-h"><div class="card-ttl">Top ciudades por volumen</div></div>
+      <div class="card-b" id="city-list"></div>
+    </div>
+    <div class="ch-card"><div class="ch-lbl">Concentración por departamento</div><canvas id="ch-dpto" height="220"></canvas></div>
+  </div>
+</div>
+
+<!-- LECCIÓN CASOS -->
+<div id="tab-leccion" class="tab-content">
+  <div class="sec-hd"><div class="sec-ico si-purple"><i class="fa-solid fa-book-open"></i></div><div><h2>Lección Casos</h2><div class="ss">Aprendizajes de casos resueltos</div></div></div>
+  <div class="card">
+    <div class="card-h"><div class="card-ttl">Registro de lecciones aprendidas</div><div class="card-sub">Se alimenta automáticamente con casos marcados como Resuelto</div></div>
+    <div class="card-b" id="leccion-body">
+      <div style="text-align:center;padding:40px;color:var(--muted)"><i class="fa-solid fa-book-open" style="font-size:32px;margin-bottom:12px;display:block;opacity:.3"></i>Las lecciones aparecerán aquí cuando haya casos con estado Resuelto en el historial.</div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">Orvian Colombia &mdash; Sistema Logístico v4.0 &mdash; <a href="https://app.dropi.co" target="_blank" style="color:var(--blue);text-decoration:none">app.dropi.co</a></div>
+</div><!-- /main -->
+
+<!-- MODAL JUSTIFICACIÓN -->
+<div class="modal-overlay" id="just-modal">
+  <div class="modal">
+    <div class="modal-h">
+      <span class="modal-ttl" id="just-modal-title">Justificación CAS</span>
+      <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-b">
+      <div class="just-box" id="just-modal-text"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-primary" onclick="copyJust()"><i class="fa-solid fa-copy"></i> Copiar texto completo</button>
+      <button class="btn-mark" onclick="marcarPresentada()"><i class="fa-solid fa-check"></i> Marcar como presentada</button>
+      <button class="btn-sec" onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   DATA — reemplazado automáticamente por la tarea programada
+   Campos: {id, fecha, cliente, ciudad, dpto, producto,
+            valor, costo, ganancia, recaudo,
+            carrier, guia, fecha_guia,
+            estado_carrier, intentos_entrega,
+            ult_mov, novedad, nov_activa,
+            estado, caso_status,
+            proceso_dev_completo, fecha_reembolso, monto_reembolsado,
+            alertas_hist, origen}
+   estado: ENTREGADO | CANCELADO | DEVOLUCION | EN_PROCESO
+   estado_carrier: EN_RUTA | BODEGA | INTENTO_FALLIDO | DEVUELTO | null
+   caso_status: 0=Pendiente 1=Msg Proveedor 2=Ticket Dropi
+                3=En CAS 4=En Indem. 5=Resuelto
+   alertas_hist: array acumulado de alertas históricas del pedido
+   origen: SHOPIFY | DROPI_BOT | WHATSAPP
+══════════════════════════════════════════════════════════ */
+const DATA = [
+
+  /* ══ URGENTE: sin guía hace +48h ══ */
+  {id:'COL-4798', fecha:'2026-04-27', cliente:'Carlos Herrera', ciudad:'Medellín', dpto:'Antioquia',
+   producto:'Set de cocina 12 piezas', valor:185000, costo:110000, ganancia:75000, recaudo:'CON RECAUDO',
+   carrier:'COORDINADORA', guia:null, fecha_guia:null, estado_carrier:null, intentos_entrega:0,
+   ult_mov:null, novedad:null, nov_activa:false, estado:'EN_PROCESO', caso_status:1,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:['GUIA_48H'], origen:'DROPI_BOT'},
+
+  {id:'COL-4812', fecha:'2026-04-28', cliente:'María González', ciudad:'Bogotá', dpto:'Cundinamarca',
+   producto:'Silla ergonómica premium', valor:320000, costo:190000, ganancia:130000, recaudo:'CON RECAUDO',
+   carrier:'INTERRAPIDISIMO', guia:null, fecha_guia:null, estado_carrier:null, intentos_entrega:0,
+   ult_mov:null, novedad:null, nov_activa:false, estado:'EN_PROCESO', caso_status:1,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:['GUIA_48H'], origen:'SHOPIFY'},
+
+  /* ══ SEGUIMIENTO: sin guía 24-48h ══ */
+  {id:'COL-4835', fecha:'2026-04-30', cliente:'Luisa Martínez', ciudad:'Cali', dpto:'Valle del Cauca',
+   producto:'Licuadora 5 velocidades', valor:148000, costo:85000, ganancia:63000, recaudo:'CON RECAUDO',
+   carrier:'ENVIA', guia:null, fecha_guia:null, estado_carrier:null, intentos_entrega:0,
+   ult_mov:null, novedad:null, nov_activa:false, estado:'EN_PROCESO', caso_status:0,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'DROPI_BOT'},
+
+  {id:'COL-4839', fecha:'2026-04-30', cliente:'Jorge Ramírez', ciudad:'Bucaramanga', dpto:'Santander',
+   producto:'Auriculares inalámbricos Bluetooth', valor:89000, costo:48000, ganancia:41000, recaudo:'CON RECAUDO',
+   carrier:'COORDINADORA', guia:null, fecha_guia:null, estado_carrier:null, intentos_entrega:0,
+   ult_mov:null, novedad:null, nov_activa:false, estado:'EN_PROCESO', caso_status:0,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'SHOPIFY'},
+
+  {id:'COL-4842', fecha:'2026-04-30', cliente:'Sandra Ospina', ciudad:'Pereira', dpto:'Risaralda',
+   producto:'Reloj inteligente deportivo', valor:215000, costo:130000, ganancia:85000, recaudo:'CON RECAUDO',
+   carrier:'99MINUTOS', guia:null, fecha_guia:null, estado_carrier:null, intentos_entrega:0,
+   ult_mov:null, novedad:null, nov_activa:false, estado:'EN_PROCESO', caso_status:0,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'WHATSAPP'},
+
+  /* ══ EN CAS: guía generada, +7 días sin entrega, atascado en bodega ══ */
+  {id:'COL-4771', fecha:'2026-04-24', cliente:'Andrés Morales', ciudad:'Barranquilla', dpto:'Atlántico',
+   producto:'Plancha de vapor profesional', valor:175000, costo:98000, ganancia:77000, recaudo:'CON RECAUDO',
+   carrier:'COORDINADORA', guia:'CR-2026-091847', fecha_guia:'2026-04-25',
+   estado_carrier:'BODEGA', intentos_entrega:0,
+   ult_mov:'Paquete en bodega Barranquilla — sin novedad de entrega',
+   novedad:'Lleva 6d en bodega sin intento de entrega', nov_activa:true,
+   estado:'EN_PROCESO', caso_status:3,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:['CAS_5D','SIN_INTENTO'], origen:'DROPI_BOT'},
+
+  /* ══ RIESGO DEVOLUCIÓN #1: despacho tardío + atascado en bodega (3d guía) ══ */
+  {id:'COL-4823', fecha:'2026-04-26', cliente:'Rodrigo Peñaloza', ciudad:'Cúcuta', dpto:'Norte de Santander',
+   producto:'Colchón viscoelástico individual', valor:480000, costo:295000, ganancia:185000, recaudo:'CON RECAUDO',
+   carrier:'COORDINADORA', guia:'CR-2026-092311', fecha_guia:'2026-04-29',
+   estado_carrier:'BODEGA', intentos_entrega:0,
+   ult_mov:'Recibido en bodega Cúcuta 29/04 — sin salida a ruta',
+   novedad:null, nov_activa:false,
+   estado:'EN_PROCESO', caso_status:0,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:['DESPACHO_TARDIO'], origen:'DROPI_BOT'},
+   /* NOTA: Proveedor demoró 3 días en despachar (fecha_guia - fecha = 3d). Ahora está en bodega sin salir a ruta. */
+
+  /* ══ RIESGO DEVOLUCIÓN #2: 2 intentos fallidos de entrega ══ */
+  {id:'COL-4831', fecha:'2026-04-28', cliente:'Esperanza Varón', ciudad:'Tunja', dpto:'Boyacá',
+   producto:'Cajonera organizadora 6 cajones', valor:195000, costo:110000, ganancia:85000, recaudo:'CON RECAUDO',
+   carrier:'INTERRAPIDISIMO', guia:'INT-2026-333041', fecha_guia:'2026-04-29',
+   estado_carrier:'INTENTO_FALLIDO', intentos_entrega:2,
+   ult_mov:'2do intento fallido 30/04 — dirección no corresponde',
+   novedad:'Dirección incorrecta, cliente no contesta teléfono', nov_activa:true,
+   estado:'EN_PROCESO', caso_status:2,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:['INTENTO_FALLIDO','INTENTO_FALLIDO'], origen:'SHOPIFY'},
+
+  /* ══ DEVOLUCIÓN activa ══ */
+  {id:'COL-4756', fecha:'2026-04-22', cliente:'Paola Torres', ciudad:'Ibagué', dpto:'Tolima',
+   producto:'Cafetera automática 12 tazas', valor:189000, costo:105000, ganancia:84000, recaudo:'CON RECAUDO',
+   carrier:'COORDINADORA', guia:'CR-2026-088234', fecha_guia:'2026-04-23',
+   estado_carrier:'DEVUELTO', intentos_entrega:3,
+   ult_mov:'Devuelto al proveedor 28/04 — cliente rechazó en 3er intento',
+   novedad:'Cliente rechazó paquete — devolución activa', nov_activa:false,
+   estado:'DEVOLUCION', caso_status:1,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:['INTENTO_FALLIDO','INTENTO_FALLIDO','DEVOLUCION'], origen:'DROPI_BOT'},
+
+  /* ══ EN OFICINA: intentaron entregar, dejaron en sede, cliente no recoge ══ */
+  {id:'COL-4809', fecha:'2026-04-27', cliente:'Valentina Cruz', ciudad:'Santa Marta', dpto:'Magdalena',
+   producto:'Juego de sábanas premium king', valor:165000, costo:90000, ganancia:75000, recaudo:'CON RECAUDO',
+   carrier:'INTERRAPIDISIMO', guia:'INT-2026-331982', fecha_guia:'2026-04-28', fecha_en_oficina:'2026-04-29',
+   estado_carrier:'EN_OFICINA', intentos_entrega:1,
+   ult_mov:'Paquete disponible en oficina Santa Marta desde 29/04 — cliente no recoge',
+   novedad:'1er intento 29/04, no estaba. Paquete dejado en oficina Interrapidísimo Santa Marta.', nov_activa:true,
+   estado:'EN_PROCESO', caso_status:0,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:['INTENTO_FALLIDO'], origen:'DROPI_BOT'},
+
+  /* ══ EN PROCESO NORMAL — en tránsito sin alertas ══ */
+  {id:'COL-4848', fecha:'2026-05-01', cliente:'Isabel Ruiz', ciudad:'Armenia', dpto:'Quindío',
+   producto:'Freidora de aire 4L', valor:299000, costo:178000, ganancia:121000, recaudo:'CON RECAUDO',
+   carrier:'ENVIA', guia:'ENV-2026-119302', fecha_guia:'2026-05-01',
+   estado_carrier:'EN_RUTA', intentos_entrega:0,
+   ult_mov:'Recogido en origen, en ruta Armenia',
+   novedad:null, nov_activa:false, estado:'EN_PROCESO', caso_status:0,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'DROPI_BOT'},
+
+  {id:'COL-4851', fecha:'2026-05-01', cliente:'Diego Vargas', ciudad:'Manizales', dpto:'Caldas',
+   producto:'Exprimidor eléctrico', valor:95000, costo:52000, ganancia:43000, recaudo:'CON RECAUDO',
+   carrier:'COORDINADORA', guia:'CR-2026-094411', fecha_guia:'2026-05-01',
+   estado_carrier:'EN_RUTA', intentos_entrega:0,
+   ult_mov:'En tránsito — salida Bogotá hacia Manizales',
+   novedad:null, nov_activa:false, estado:'EN_PROCESO', caso_status:0,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'SHOPIFY'},
+
+  {id:'COL-4853', fecha:'2026-05-01', cliente:'Carolina Jiménez', ciudad:'Pasto', dpto:'Nariño',
+   producto:'Set de ollas antiadherentes', valor:245000, costo:148000, ganancia:97000, recaudo:'CON RECAUDO',
+   carrier:'INTERRAPIDISIMO', guia:'INT-2026-335812', fecha_guia:'2026-05-01',
+   estado_carrier:'EN_RUTA', intentos_entrega:0,
+   ult_mov:'En tránsito hacia Pasto',
+   novedad:null, nov_activa:false, estado:'EN_PROCESO', caso_status:0,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'DROPI_BOT'},
+
+  {id:'COL-4855', fecha:'2026-05-01', cliente:'Mauricio Sánchez', ciudad:'Villavicencio', dpto:'Meta',
+   producto:'Batidora de mano 5 velocidades', valor:125000, costo:70000, ganancia:55000, recaudo:'CON RECAUDO',
+   carrier:'ENVIA', guia:'ENV-2026-119788', fecha_guia:'2026-05-01',
+   estado_carrier:'EN_RUTA', intentos_entrega:0,
+   ult_mov:'Recogido en origen — en ruta',
+   novedad:null, nov_activa:false, estado:'EN_PROCESO', caso_status:0,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'SHOPIFY'},
+
+  /* ══ ENTREGADOS ══ */
+  {id:'COL-4720', fecha:'2026-04-21', cliente:'Natalia Reyes', ciudad:'Bogotá', dpto:'Cundinamarca',
+   producto:'Termo acero inoxidable 1L', valor:75000, costo:38000, ganancia:37000, recaudo:'CON RECAUDO',
+   carrier:'99MINUTOS', guia:'99M-2026-004512', fecha_guia:'2026-04-21',
+   estado_carrier:null, intentos_entrega:1, ult_mov:'Entregado 22/04',
+   novedad:null, nov_activa:false, estado:'ENTREGADO', caso_status:5,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'SHOPIFY'},
+
+  {id:'COL-4725', fecha:'2026-04-21', cliente:'Roberto Vargas', ciudad:'Medellín', dpto:'Antioquia',
+   producto:'Audífonos over-ear premium', valor:380000, costo:220000, ganancia:160000, recaudo:'CON RECAUDO',
+   carrier:'COORDINADORA', guia:'CR-2026-082100', fecha_guia:'2026-04-22',
+   estado_carrier:null, intentos_entrega:1, ult_mov:'Entregado 24/04',
+   novedad:null, nov_activa:false, estado:'ENTREGADO', caso_status:5,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'DROPI_BOT'},
+
+  {id:'COL-4731', fecha:'2026-04-22', cliente:'Gloria Mendoza', ciudad:'Cali', dpto:'Valle del Cauca',
+   producto:'Mini aspiradora portátil', valor:110000, costo:62000, ganancia:48000, recaudo:'SIN RECAUDO',
+   carrier:'ENVIA', guia:'ENV-2026-115230', fecha_guia:'2026-04-22',
+   estado_carrier:null, intentos_entrega:1, ult_mov:'Entregado 25/04',
+   novedad:null, nov_activa:false, estado:'ENTREGADO', caso_status:5,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'WHATSAPP'},
+
+  {id:'COL-4740', fecha:'2026-04-23', cliente:'Héctor López', ciudad:'Bucaramanga', dpto:'Santander',
+   producto:'Báscula digital cocina', valor:68000, costo:35000, ganancia:33000, recaudo:'CON RECAUDO',
+   carrier:'INTERRAPIDISIMO', guia:'INT-2026-330445', fecha_guia:'2026-04-23',
+   estado_carrier:null, intentos_entrega:1, ult_mov:'Entregado 26/04',
+   novedad:null, nov_activa:false, estado:'ENTREGADO', caso_status:5,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'SHOPIFY'},
+
+  {id:'COL-4745', fecha:'2026-04-23', cliente:'Ana Belén Pérez', ciudad:'Barranquilla', dpto:'Atlántico',
+   producto:'Dispensador agua fría-caliente', valor:450000, costo:280000, ganancia:170000, recaudo:'CON RECAUDO',
+   carrier:'COORDINADORA', guia:'CR-2026-083900', fecha_guia:'2026-04-24',
+   estado_carrier:null, intentos_entrega:2, ult_mov:'Entregado 27/04 (2do intento)',
+   novedad:null, nov_activa:false, estado:'ENTREGADO', caso_status:5,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:['INTENTO_FALLIDO'], origen:'DROPI_BOT'},
+
+  /* ══ CANCELADOS ══ */
+  {id:'COL-4762', fecha:'2026-04-23', cliente:'Silvana Mora', ciudad:'Bogotá', dpto:'Cundinamarca',
+   producto:'Calentador eléctrico 2000W', valor:195000, costo:112000, ganancia:0, recaudo:'SIN RECAUDO',
+   carrier:'COORDINADORA', guia:null, fecha_guia:null, estado_carrier:null, intentos_entrega:0,
+   ult_mov:null, novedad:null, nov_activa:false, estado:'CANCELADO', caso_status:0,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'SHOPIFY'},
+
+  {id:'COL-4775', fecha:'2026-04-24', cliente:'Tomás Ríos', ciudad:'Cali', dpto:'Valle del Cauca',
+   producto:'Humidificador ultrasónico', valor:135000, costo:78000, ganancia:0, recaudo:'SIN RECAUDO',
+   carrier:'ENVIA', guia:null, fecha_guia:null, estado_carrier:null, intentos_entrega:0,
+   ult_mov:null, novedad:null, nov_activa:false, estado:'CANCELADO', caso_status:0,
+   proceso_dev_completo:false, fecha_reembolso:null, monto_reembolsado:0,
+   alertas_hist:[], origen:'DROPI_BOT'},
+];
+
+/* Historial de indemnizaciones presentadas — NO REPETIR */
+const INDEM_HIST = [];
+
+/* ── HELPERS ── */
+const TODAY = new Date();
+const fmt = n => '$' + Math.round(n).toLocaleString('es-CO');
+const pct = (a,b) => b ? Math.round(a/b*100) : 0;
+const daysAgo = d => Math.round((TODAY - new Date(d.fecha+'T00:00:00')) / 86400000);
+const hoursAgo = d => Math.round((TODAY - new Date(d.fecha+'T00:00:00')) / 3600000);
+const carrColor = {'COORDINADORA':'#2563eb','INTERRAPIDISIMO':'#d97706','ENVIA':'#16a34a','99MINUTOS':'#7c3aed'};
+const carrLabel = {'COORDINADORA':'Coordinadora','INTERRAPIDISIMO':'Interrapidísimo','ENVIA':'Envia','99MINUTOS':'99Minutos'};
+const chartReg = {};
+
+function destroyChart(id){ if(chartReg[id]){ chartReg[id].destroy(); delete chartReg[id]; } }
+function makeChart(id, cfg){
+  destroyChart(id);
+  const ctx = document.getElementById(id);
+  if(!ctx) return null;
+  chartReg[id] = new Chart(ctx, cfg);
+  return chartReg[id];
+}
+
+function carrBadge(c){
+  const cls = {COORDINADORA:'cb-coord',INTERRAPIDISIMO:'cb-inter',ENVIA:'cb-envia','99MINUTOS':'cb-99'}[c]||'';
+  const lbl = c==='INTERRAPIDISIMO'?'INTERRAP.':c==='99MINUTOS'?'99MIN.':c;
+  return `<span class="cb ${cls}">${lbl}</span>`;
+}
+
+function origenBadge(o){
+  if(o==='SHOPIFY') return '<span class="pill pp" style="font-size:9px"><i class="fa-solid fa-cart-shopping" style="margin-right:3px"></i>Shopify</span>';
+  if(o==='DROPI_BOT') return '<span class="pill pt" style="font-size:9px"><i class="fa-solid fa-robot" style="margin-right:3px"></i>Bot Dropi</span>';
+  if(o==='WHATSAPP') return '<span class="pill pg" style="font-size:9px"><i class="fa-brands fa-whatsapp" style="margin-right:3px"></i>WhatsApp</span>';
+  return '—';
+}
+
+function casoChip(cs){
+  const d=[['Pendiente','pm'],['Msg Proveedor','pa'],['Ticket Dropi','pa'],['En CAS','pb'],['En Indem.','pp'],['Resuelto','pg']];
+  const x=d[cs]||d[0];
+  return `<span class="pill ${x[1]}">${x[0]}</span>`;
+}
+
+function apRow(d){
+  return `<div style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border);font-size:11px">
+    <span style="font-family:monospace;font-size:10px;color:var(--muted);width:44px">#${d.id||'—'}</span>
+    <span style="flex:1;color:var(--txt2)">${d.cliente}</span>
+    <span class="pill pr" style="font-size:9px">${fmt(d.valor)}</span>
+  </div>`;
+}
+
+/* ══ FILTRO GLOBAL DE FECHAS ══ */
+let _fFrom = null, _fTo = null, _currentDay = null;
+
+function getFDATA(){
+  if(!_fFrom && !_fTo) return DATA;
+  return DATA.filter(d=>{
+    const dt = new Date(d.fecha+'T00:00:00');
+    if(_fFrom && dt < _fFrom) return false;
+    if(_fTo && dt > _fTo) return false;
+    return true;
+  });
+}
+
+/* Las secciones operativas usan siempre TODO el DATA sin filtro de fecha */
+function getALLOpen(){
+  return DATA.filter(d => d.estado==='EN_PROCESO' || d.estado==='DEVOLUCION' || d.nov_activa);
+}
+
+function _resetDayNav(){
+  _currentDay = null;
+  const el = document.getElementById('fday-text');
+  if(el) el.textContent = '— elegir —';
+  const pk = document.getElementById('fday-picker');
+  if(pk) pk.value = '';
+  _updateNavButtons();
+}
+
+function setPreset(p){
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth(),dd=now.getDate();
+  document.querySelectorAll('.fp').forEach(b=>b.classList.remove('factive'));
+  const btn=document.querySelector(`.fp[onclick="setPreset('${p}')"]`);
+  if(btn) btn.classList.add('factive');
+  document.getElementById('f-from').value='';
+  document.getElementById('f-to').value='';
+  _resetDayNav();
+  if(p==='today'){_fFrom=new Date(y,m,dd,0,0,0);_fTo=new Date(y,m,dd,23,59,59);}
+  else if(p==='week'){const dow=now.getDay();_fFrom=new Date(y,m,dd-dow,0,0,0);_fTo=new Date(y,m,dd,23,59,59);}
+  else if(p==='month'){_fFrom=new Date(y,m,1,0,0,0);_fTo=new Date(y,m+1,0,23,59,59);}
+  else if(p==='lastmonth'){_fFrom=new Date(y,m-1,1,0,0,0);_fTo=new Date(y,m,0,23,59,59);}
+  else if(p==='q3'){_fFrom=new Date(y,m-2,1,0,0,0);_fTo=new Date(y,m+1,0,23,59,59);}
+  else{_fFrom=null;_fTo=null;}
+  _updateFL(); rebuildCurrent();
+}
+
+function setCustomFilter(){
+  const fv=document.getElementById('f-from').value, tv=document.getElementById('f-to').value;
+  document.querySelectorAll('.fp').forEach(b=>b.classList.remove('factive'));
+  _resetDayNav();
+  _fFrom=fv?new Date(fv+'T00:00:00'):null;
+  _fTo=tv?new Date(tv+'T23:59:59'):null;
+  _updateFL(); rebuildCurrent();
+}
+
+function getAvailableDates(){
+  const set = new Set(DATA.map(d=>d.fecha));
+  return Array.from(set).sort();
+}
+
+function setDayView(dateStr){
+  _currentDay = dateStr;
+  const d = new Date(dateStr+'T00:00:00');
+  const y=d.getFullYear(),mo=d.getMonth(),dd=d.getDate();
+  _fFrom = new Date(y,mo,dd,0,0,0);
+  _fTo = new Date(y,mo,dd,23,59,59);
+  document.querySelectorAll('.fp').forEach(b=>b.classList.remove('factive'));
+  document.getElementById('f-from').value='';
+  document.getElementById('f-to').value='';
+  const label = d.toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+  const el = document.getElementById('fday-text');
+  if(el) el.textContent = label;
+  const pk = document.getElementById('fday-picker');
+  if(pk) pk.value = dateStr;
+  _updateNavButtons(); _updateFL(); rebuildCurrent();
+}
+
+function pickDay(dateStr){ if(dateStr) setDayView(dateStr); }
+
+function navDay(delta){
+  const dates = getAvailableDates();
+  if(!dates.length) return;
+  if(!_currentDay){ setDayView(delta>0?dates[0]:dates[dates.length-1]); return; }
+  const idx = dates.indexOf(_currentDay);
+  const ni = idx + delta;
+  if(ni>=0 && ni<dates.length) setDayView(dates[ni]);
+}
+
+function _updateNavButtons(){
+  const dates = getAvailableDates();
+  const p = document.getElementById('fnav-prev');
+  const n = document.getElementById('fnav-next');
+  if(!p||!n) return;
+  if(!_currentDay||!dates.length){ p.disabled=true; n.disabled=true; return; }
+  const idx = dates.indexOf(_currentDay);
+  p.disabled = (idx<=0);
+  n.disabled = (idx<0||idx>=dates.length-1);
+}
+
+function _updateFL(){
+  const fd = getFDATA();
+  const el = document.getElementById('f-count-label');
+  if(el) el.textContent = fd.length+' registros';
+}
+
+/* ══ NAVIGATION ══ */
+const tabFns = {plandia:buildPlanDia,trazabilidad:buildTrazabilidad,dashboard:buildDashboard,ordenes:buildOrdenes,alertas:buildAlertas,guias:buildGuias,wallet:buildWallet,devoluciones:buildDevoluciones,indem:buildIndem,transportadoras:buildTransportadoras,ciudades:buildCiudades,leccion:buildLeccion};
+
+function nav(id, el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('.ni').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  if(tabFns[id]) tabFns[id]();
+}
+
+function rebuildCurrent(){
+  const active = document.querySelector('.tab-content.active');
+  if(!active) return;
+  const id = active.id.replace('tab-','');
+  if(tabFns[id]) tabFns[id]();
+}
+
+/* ══ DASHBOARD ══ */
+function buildDashboard(){
+  const DATA = getFDATA();
+  const ent = DATA.filter(d=>d.estado==='ENTREGADO');
+  const can = DATA.filter(d=>d.estado==='CANCELADO');
+  const dev = DATA.filter(d=>d.estado==='DEVOLUCION');
+  const proc = DATA.filter(d=>d.estado==='EN_PROCESO');
+  const totalVal = ent.reduce((s,d)=>s+d.valor,0);
+  const totalGan = ent.reduce((s,d)=>s+d.ganancia,0);
+  const tasaEnt = pct(ent.length, DATA.filter(d=>d.estado!=='EN_PROCESO').length);
+  const novAct = DATA.filter(d=>d.nov_activa).length;
+
+  // Efectividad banner
+  const color = tasaEnt>=80?'var(--green)':tasaEnt>=65?'var(--amber)':'var(--red)';
+  document.getElementById('efect-banner').innerHTML = `<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:14px 20px;display:flex;align-items:center;gap:16px">
+    <div style="font-size:32px;font-weight:800;color:${color}">${tasaEnt}%</div>
+    <div><div style="font-size:13px;font-weight:700;color:var(--txt)">Tasa de efectividad</div>
+    <div style="font-size:11px;color:var(--muted)">${ent.length} entregas de ${DATA.filter(d=>d.estado!=='EN_PROCESO').length} cerradas · ${proc.length} en proceso · ${dev.length} devol.</div></div>
+    <div style="margin-left:auto;text-align:right"><div style="font-size:18px;font-weight:800;color:var(--green)">${fmt(totalGan)}</div><div style="font-size:11px;color:var(--muted)">Ganancia neta período</div></div>
+  </div>`;
+  document.getElementById('efect-topbar').textContent = tasaEnt+'% efectividad';
+
+  document.getElementById('kpi-dash').innerHTML = `
+    <div class="kpi kb"><div class="kpi-ico"><i class="fa-solid fa-boxes-stacked"></i></div><div class="kpi-val">${DATA.length}</div><div class="kpi-lbl">Total órdenes</div><div class="kpi-sub">${proc.length} en proceso</div></div>
+    <div class="kpi kg"><div class="kpi-ico"><i class="fa-solid fa-circle-check"></i></div><div class="kpi-val">${ent.length}</div><div class="kpi-lbl">Entregas exitosas</div><div class="kpi-sub">${fmt(totalVal)} recaudados</div></div>
+    <div class="kpi kt"><div class="kpi-ico"><i class="fa-solid fa-leaf"></i></div><div class="kpi-val sm">${fmt(totalGan)}</div><div class="kpi-lbl">Ganancia neta</div><div class="kpi-sub">Margen ${pct(totalGan,totalVal)}%</div></div>
+    <div class="kpi kr"><div class="kpi-ico"><i class="fa-solid fa-circle-exclamation"></i></div><div class="kpi-val">${dev.length+novAct}</div><div class="kpi-lbl">Alertas activas</div><div class="kpi-sub">${dev.length} dev · ${novAct} novedades</div></div>
+  `;
+
+  const devs = DATA.filter(d=>d.estado==='DEVOLUCION');
+  const novs = DATA.filter(d=>d.nov_activa);
+  const topRec = [...ent].sort((a,b)=>b.valor-a.valor).slice(0,4);
+
+  document.getElementById('ap-cnt-dev').textContent = devs.length;
+  document.getElementById('ap-dev').innerHTML = devs.slice(0,5).map(apRow).join('') || '<div style="padding:12px 16px;font-size:11px;color:var(--muted)">Sin devoluciones</div>';
+  document.getElementById('ap-cnt-nov').textContent = novs.length;
+  document.getElementById('ap-nov').innerHTML = novs.slice(0,5).map(apRow).join('') || '<div style="padding:12px 16px;font-size:11px;color:var(--muted)">Sin novedades</div>';
+  document.getElementById('ap-cnt-rec').textContent = fmt(totalVal);
+  document.getElementById('ap-rec').innerHTML = topRec.map(apRow).join('');
+  document.getElementById('bdg-alerta').textContent = novs.length;
+
+  // Charts
+  const byDate = {};
+  DATA.forEach(d=>{ const dt=d.fecha.slice(0,10); byDate[dt]=(byDate[dt]||0)+(d.estado==='ENTREGADO'?d.valor:0); });
+  const dates = Object.keys(byDate).sort();
+  makeChart('ch-trend',{type:'line',data:{labels:dates.map(d=>d.slice(5)),datasets:[{label:'Ingresos COP',data:dates.map(d=>byDate[d]),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.08)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#2563eb'}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#6b7280',font:{size:9},callback:v=>fmt(v)},grid:{color:'rgba(0,0,0,.04)'}}}}});
+
+  makeChart('ch-estados',{type:'doughnut',data:{labels:['Entregado','Cancelado','Devolución','En proceso'],datasets:[{data:[ent.length,can.length,dev.length,proc.length],backgroundColor:['#16a34a','#d97706','#dc2626','#2563eb'],borderWidth:0,hoverOffset:6}]},options:{responsive:true,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#374151',font:{size:10},padding:10}}}}});
+
+  const cars = [...new Set(DATA.map(d=>d.carrier))].filter(Boolean);
+  makeChart('ch-carrier-rev',{type:'bar',data:{labels:cars.map(c=>carrLabel[c]||c),datasets:[{data:cars.map(c=>DATA.filter(d=>d.carrier===c&&d.estado==='ENTREGADO').reduce((s,d)=>s+d.valor,0)),backgroundColor:cars.map(c=>carrColor[c]||'#2563eb'),borderRadius:5}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:9},callback:v=>fmt(v)},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#374151',font:{size:9}},grid:{display:false}}}}});
+
+  makeChart('ch-carrier-ord',{type:'bar',data:{labels:cars.map(c=>carrLabel[c]||c),datasets:[{data:cars.map(c=>DATA.filter(d=>d.carrier===c).length),backgroundColor:cars.map(c=>(carrColor[c]||'#2563eb')+'55'),borderColor:cars.map(c=>carrColor[c]||'#2563eb'),borderWidth:1,borderRadius:5}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#374151',font:{size:9}},grid:{display:false}}}}});
+
+  const cityMap = {};
+  DATA.forEach(d=>{ cityMap[d.ciudad]=(cityMap[d.ciudad]||0)+1; });
+  const topC = Object.entries(cityMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  makeChart('ch-cities',{type:'bar',data:{labels:topC.map(c=>c[0]),datasets:[{data:topC.map(c=>c[1]),backgroundColor:'rgba(13,148,136,.6)',borderColor:'#0d9488',borderWidth:1,borderRadius:4}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#374151',font:{size:9}},grid:{display:false}}}}});
+
+  document.getElementById('sb-ts').textContent = new Date().toLocaleTimeString('es-CO');
+}
+
+/* ══ ÓRDENES ══ */
+function buildOrdenes(){
+  const DATA = getFDATA();
+  const txt = (document.getElementById('f-txt')||{}).value||'';
+  const est = (document.getElementById('f-est')||{}).value||'';
+  const car = (document.getElementById('f-car')||{}).value||'';
+  const rows = DATA.filter(d=>{
+    if(est && d.estado!==est) return false;
+    if(car && d.carrier!==car) return false;
+    if(txt){ const q=txt.toLowerCase(); return (d.id+d.cliente+d.ciudad+d.guia+d.estado).toLowerCase().includes(q); }
+    return true;
+  });
+  document.getElementById('ord-cnt').textContent = rows.length+' registros';
+  document.getElementById('ord-sub').textContent = rows.length+' de '+DATA.length+' órdenes';
+  document.getElementById('tbl-ordenes').innerHTML = rows.map(d=>`
+    <tr class="${d.estado==='DEVOLUCION'?'row-alert':d.estado==='CANCELADO'?'row-warn':''}">
+      <td class="mono">#${d.id||'—'}</td><td class="mono">${d.fecha}</td><td>${d.cliente}</td>
+      <td>${d.ciudad}<br><span style="font-size:10px;color:var(--muted)">${d.dpto||''}</span></td>
+      <td style="font-weight:600">${fmt(d.valor)}</td>
+      <td><span class="pill ${d.estado==='ENTREGADO'?'pg':d.estado==='CANCELADO'?'pa':d.estado==='EN_PROCESO'?'pb':'pr'}">${d.estado}</span></td>
+      <td class="mono">${d.guia||'—'}</td>
+      <td>${carrBadge(d.carrier)}</td>
+      <td style="font-size:11px">${d.ult_mov||'—'}</td>
+      <td style="font-size:11px;color:${d.nov_activa?'var(--red)':'var(--muted)'}">${d.novedad||'—'}</td>
+      <td style="color:var(--green);font-weight:700">${d.ganancia?fmt(d.ganancia):'—'}</td>
+      <td>${casoChip(d.caso_status||0)}</td>
+    </tr>`).join('') || '<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--muted)">Sin registros para el período seleccionado</td></tr>';
+}
+
+/* ══ ALERTAS — usa TODO el DATA sin filtro de fecha ══ */
+function buildAlertas(){
+  const allNov = DATA.filter(d=>d.novedad);
+  const novAct = DATA.filter(d=>d.nov_activa);
+  const filtrados = getFDATA();
+  const mesAntItems = allNov.filter(d=>!filtrados.includes(d));
+  const banner = document.getElementById('mesant-alertas');
+  if(banner) banner.style.display = mesAntItems.length ? 'flex' : 'none';
+
+  document.getElementById('kpi-alertas').innerHTML = `
+    <div class="kpi kr"><div class="kpi-ico"><i class="fa-solid fa-circle-exclamation"></i></div><div class="kpi-val">${novAct.length}</div><div class="kpi-lbl">Sin resolver</div></div>
+    <div class="kpi kg"><div class="kpi-ico"><i class="fa-solid fa-circle-check"></i></div><div class="kpi-val">${allNov.length-novAct.length}</div><div class="kpi-lbl">Resueltas</div></div>
+    <div class="kpi ka"><div class="kpi-ico"><i class="fa-solid fa-clock-rotate-left"></i></div><div class="kpi-val">${mesAntItems.length}</div><div class="kpi-lbl">Mes anterior rodando</div></div>
+  `;
+  document.getElementById('nov-sub').textContent = allNov.length+' novedades · '+novAct.length+' activas';
+  document.getElementById('tbl-alertas').innerHTML = allNov.map(d=>`
+    <tr class="${d.nov_activa?'row-alert':''}">
+      <td class="mono">#${d.id||'—'}</td><td class="mono">${d.fecha}</td><td>${d.cliente}</td>
+      <td>${d.ciudad}</td><td>${carrBadge(d.carrier)}</td>
+      <td style="font-size:11px;color:${d.nov_activa?'var(--red)':'var(--muted)'}">${d.novedad}</td>
+      <td><span class="pill ${d.nov_activa?'pr':'pg'}">${d.nov_activa?'Sin resolver':'Resuelta'}</span></td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Sin novedades registradas</td></tr>';
+}
+
+/* ══ PROTOCOLO GUÍAS — usa TODO el DATA abierto ══ */
+
+/* ── helpers de tiempo precisos ── */
+function diasDeGuia(d){
+  if(!d.fecha_guia) return null;
+  return Math.max(0, Math.round((TODAY - new Date(d.fecha_guia+'T00:00:00'))/86400000));
+}
+function diasDespachoTardio(d){
+  if(!d.fecha_guia || !d.fecha) return 0;
+  return Math.max(0, Math.round((new Date(d.fecha_guia+'T00:00:00') - new Date(d.fecha+'T00:00:00'))/86400000));
+}
+function diasEnOficina(d){
+  if(!d.fecha_en_oficina) return 0;
+  return Math.max(0, Math.round((TODAY - new Date(d.fecha_en_oficina+'T00:00:00'))/86400000));
+}
+
+/* ── pill visual del estado del carrier ── */
+function evPillCarrier(d){
+  if(!d.estado_carrier) return '<span class="ev-pill">Sin estado carrier</span>';
+  if(d.estado_carrier==='EN_RUTA') return '<span class="ev-pill ep-rut">🚚 En ruta</span>';
+  if(d.estado_carrier==='BODEGA') return `<span class="ev-pill ep-bod">📦 Bodega${diasDeGuia(d)!==null?' +'+diasDeGuia(d)+'d':''}</span>`;
+  if(d.estado_carrier==='INTENTO_FALLIDO') return `<span class="ev-pill ep-fal">❌ Fallido ${d.intentos_entrega||1}x</span>`;
+  if(d.estado_carrier==='EN_OFICINA') return `<span class="ev-pill ep-bod">🏢 Oficina +${diasEnOficina(d)}d</span>`;
+  if(d.estado_carrier==='DEVUELTO') return '<span class="ev-pill ep-fal">↩ Devuelto</span>';
+  return `<span class="ev-pill">${d.estado_carrier}</span>`;
+}
+
+/* ── función de riesgo predictivo (núcleo del sistema) ── */
+function getRiesgo(d){
+  if(d.estado !== 'EN_PROCESO' || !d.guia) return [];
+  const riesgos = [];
+  const dg = diasDeGuia(d);           // días desde que salió la guía
+  const dt = diasDespachoTardio(d);   // días que tardó el proveedor
+  const hist = d.alertas_hist || [];
+  const intentos = d.intentos_entrega || 0;
+
+  // 1. Proveedor demoró >2 días en generar guía desde la orden
+  if(dt > 2)
+    riesgos.push({tipo:'DESPACHO_TARDIO', label:`Proveedor despachó +${dt}d tarde`, cls:'rtag-amber', ico:'fa-clock-rotate-left'});
+
+  // 2. Intento(s) fallido(s) de entrega — señal fuerte de retorno
+  if(d.estado_carrier === 'INTENTO_FALLIDO')
+    riesgos.push({tipo:'INTENTO_FALLIDO', label:`${intentos}x intento${intentos!==1?'s':''} fallido${intentos!==1?'s':''}`, cls:'rtag-red', ico:'fa-circle-xmark'});
+
+  // 3. Paquete retenido en bodega sin salir a ruta
+  if(d.estado_carrier === 'BODEGA' && dg !== null && dg >= 2)
+    riesgos.push({tipo:'EN_BODEGA', label:`En bodega +${dg}d sin entregar`, cls:'rtag-red', ico:'fa-warehouse'});
+
+  // 4. En oficina esperando recogida
+  if(d.estado_carrier === 'EN_OFICINA'){
+    const dof = diasEnOficina(d);
+    riesgos.push({tipo:'EN_OFICINA', label:`Oficina +${dof}d — retorno inminente si no recoge`, cls:'rtag-red', ico:'fa-building'});
+  }
+
+  // 5. Sin intento de entrega tras >3 días de guía activa
+  if(dg !== null && dg >= 3 && intentos === 0 &&
+     d.estado_carrier !== 'EN_RUTA' && d.estado_carrier !== 'INTENTO_FALLIDO' && d.estado_carrier !== 'EN_OFICINA')
+    riesgos.push({tipo:'SIN_INTENTO', label:'Sin intento de entrega registrado', cls:'rtag-red', ico:'fa-ban'});
+
+  // 6. Tránsito extremadamente largo (>8d desde guía — peor que CAS)
+  if(dg !== null && dg >= 8)
+    riesgos.push({tipo:'TRANSITO_LARGO', label:`+${dg}d total en tránsito`, cls:'rtag-red', ico:'fa-hourglass-end'});
+
+  // 7. Patrón de historial — múltiples alertas acumuladas
+  const histAlertas = hist.filter(h=>['INTENTO_FALLIDO','DESPACHO_TARDIO','CAS_5D','SIN_INTENTO'].includes(h)).length;
+  if(histAlertas >= 2)
+    riesgos.push({tipo:'HIST_MULTIPLE', label:`${histAlertas} alertas previas en historial`, cls:'rtag-amber', ico:'fa-triangle-exclamation'});
+
+  return riesgos;
+}
+
+function getGuiaAlert(d){
+  const hrsOrden = hoursAgo(d);
+  const diasOrden = daysAgo(d);
+  const dg = diasDeGuia(d) !== null ? diasDeGuia(d) : diasOrden;
+  const sinGuia = !d.guia;
+
+  if(sinGuia && d.estado==='EN_PROCESO'){
+    if(hrsOrden>=48) return {nivel:'48h',tag:'act-48',icon:'fa-circle-xmark',label:'>48h SIN GUÍA — Ticket Dropi',accion:'Abrir ticket soporte Dropi',hrs:hrsOrden};
+    if(hrsOrden>=24) return {nivel:'24h',tag:'act-24',icon:'fa-clock',label:'>24h sin guía',accion:'Contactar proveedor',hrs:hrsOrden};
+    return {nivel:'ok',tag:'act-ok',icon:'fa-circle-check',label:'Reciente — monitorear',accion:'Monitorear',hrs:hrsOrden};
+  }
+  if(d.guia && d.estado==='EN_PROCESO'){
+    if(d.estado_carrier==='INTENTO_FALLIDO')
+      return {nivel:'fallido',tag:'act-48',icon:'fa-ban',label:`${d.intentos_entrega||1}x intento fallido`,accion:'Coordinar reentrega / nueva dirección',hrs:hrsOrden};
+    if(d.estado_carrier==='EN_OFICINA'){
+      const dof = diasEnOficina(d);
+      return {nivel:'oficina',tag:'act-24',icon:'fa-building',label:`En oficina +${dof}d`,accion:`Notificar cliente — retorno en ${Math.max(0,3-dof)}d`,hrs:hrsOrden};
+    }
+    if(d.estado_carrier==='BODEGA' && dg>=2)
+      return {nivel:'bodega',tag:'act-24',icon:'fa-warehouse',label:`En bodega +${dg}d sin salir`,accion:'Alertar carrier — riesgo retorno',hrs:hrsOrden};
+    if(dg>=7)
+      return {nivel:'cas',tag:'act-48',icon:'fa-headset',label:`+${dg}d en tránsito (CRÍTICO)`,accion:'Escalar CAS urgente',hrs:hrsOrden};
+    if(dg>=5)
+      return {nivel:'cas',tag:'act-cas',icon:'fa-headset',label:`+${dg}d en tránsito`,accion:'Abrir caso CAS',hrs:hrsOrden};
+    if(dg>=3)
+      return {nivel:'cas2',tag:'act-cas2',icon:'fa-magnifying-glass',label:`+${dg}d — revisar tracking`,accion:'Verificar estado con carrier',hrs:hrsOrden};
+    return {nivel:'ok',tag:'act-ok',icon:'fa-circle-check',label:'En tránsito normal',accion:'Monitorear',hrs:hrsOrden};
+  }
+  if(d.estado==='DEVOLUCION')
+    return {nivel:'indem',tag:'act-cas',icon:'fa-scale-balanced',label:`+${diasOrden}d en devolución`,accion:'Preparar justificación CAS',hrs:hrsOrden};
+  return null;
+}
+
+/* ── Plantillas de mensajes ── */
+function msgProveedor(d){
+  const hrsOrden = hoursAgo(d);
+  return `Buen día,\n\nEspero se encuentren bien. Les escribo para hacer seguimiento al pedido #${d.id||'S/N'} del cliente ${d.cliente}, ciudad ${d.ciudad}, generado el ${d.fecha}.\n\nHan transcurrido más de ${Math.round(hrsOrden)} horas y aún no se ha generado la guía de envío con ${carrLabel[d.carrier]||d.carrier}. Por favor confirmar el estado del despacho y compartir el número de guía a la brevedad posible.\n\nQuedaré pendiente de su respuesta.\n\nGracias,\nOrvian Colombia`;
+}
+function msgTicketDropi(d){
+  const hrsOrden = hoursAgo(d);
+  return `TICKET DROPI — GUÍA NO GENERADA\n\nPedido  : #${d.id||'S/N'}\nFecha   : ${d.fecha}\nCliente : ${d.cliente}\nCiudad  : ${d.ciudad}\nCarrier : ${carrLabel[d.carrier]||d.carrier}\nValor   : ${fmt(d.valor)}\n\nDESCRIPCIÓN:\nHan transcurrido ${Math.round(hrsOrden)} horas y la guía con ${carrLabel[d.carrier]||d.carrier} no ha sido creada. Se contactó al proveedor sin respuesta oportuna. Se solicita intervención de soporte Dropi.\n\nFecha reporte: ${TODAY.toLocaleDateString('es-CO')}\nOperador: Orvian Colombia`;
+}
+function msgCAS(d){
+  const dg = diasDeGuia(d) !== null ? diasDeGuia(d) : daysAgo(d);
+  const dt = diasDespachoTardio(d);
+  const riesgos = getRiesgo(d).map(r=>'  • '+r.label).join('\n') || '  (Sin alertas adicionales)';
+  return `TICKET CAS — SEGUIMIENTO GUÍA EN TRÁNSITO\n\nPedido  : #${d.id||'S/N'}\nCliente : ${d.cliente}\nCiudad  : ${d.ciudad} / ${d.dpto||''}\nCarrier : ${carrLabel[d.carrier]||d.carrier}\nGuía    : ${d.guia}\nOrden   : ${d.fecha}${dt>0?` (guía generada con +${dt}d de retraso)`:''}\nGuía gen.: ${d.fecha_guia||'—'}\nDías en tránsito: +${dg}\nÚltimo estado  : ${d.ult_mov||'Sin registro'}\nIntentos entrega: ${d.intentos_entrega||0}\n\nINDICADORES DE RIESGO:\n${riesgos}\n\nSOLICITUD:\nLa guía lleva +${dg} días sin confirmación de entrega. Historial de alertas: ${(d.alertas_hist||[]).join(', ')||'ninguno'}. Por favor confirmar proyección de entrega y gestión urgente para evitar devolución.\n\nFecha reporte: ${TODAY.toLocaleDateString('es-CO')}\nOperador: Orvian Colombia`;
+}
+function msgRiesgoCarrier(d){
+  const dg = diasDeGuia(d) !== null ? diasDeGuia(d) : daysAgo(d);
+  const riesgos = getRiesgo(d).map(r=>'  • '+r.label).join('\n');
+  return `⚠️ ALERTA PREVENTIVA — RIESGO DE DEVOLUCIÓN\n\nApreciada ${carrLabel[d.carrier]||d.carrier},\n\nEl envío con guía ${d.guia} para el cliente ${d.cliente} en ${d.ciudad} lleva +${dg} días desde su generación sin confirmación de entrega.\n\nAlertas detectadas:\n${riesgos}\n\nSolicitamos gestión PRIORITARIA. Si no se confirma entrega en 48h, procederemos con reclamación formal ante CAS.\n\nDetalle:\n  Pedido   : #${d.id||'—'}\n  Guía     : ${d.guia}\n  Despacho : ${d.fecha_guia||d.fecha}\n  Último evento  : ${d.ult_mov||'Sin registro'}\n  Intentos       : ${d.intentos_entrega||0}\n  Historial prev.: ${(d.alertas_hist||[]).join(', ')||'ninguno'}\n\nPor favor confirmar estado actual y proyección de entrega urgente.\n\nGracias,\nOrvian Colombia — ${TODAY.toLocaleDateString('es-CO')}`;
+}
+function msgOficina(d){
+  const dof = diasEnOficina(d);
+  return `📦 PAQUETE EN OFICINA ${carrLabel[d.carrier]||d.carrier} — RECOGER URGENTE\n\nEstimado/a ${d.cliente},\n\nLe informamos que su pedido (guía ${d.guia}) está disponible en la oficina de ${carrLabel[d.carrier]||d.carrier} en ${d.ciudad} desde hace ${dof} día${dof!==1?'s':''}.\n\n⚠️ IMPORTANTE: Si no lo recoge en las próximas 48 horas, la transportadora lo devolverá automáticamente y perderemos el pedido.\n\nPasos para recoger:\n  1. Presentarse en la oficina con su cédula\n  2. Indicar número de guía: ${d.guia}\n  3. Si no puede ir, puede autorizar a otra persona con cédula y autorización escrita\n\nSi tiene algún inconveniente para recoger, escríbanos HOY para coordinar una reentrega.\n\nGracias,\nOrvian Colombia — ${TODAY.toLocaleDateString('es-CO')}`;
+}
+
+function buildGuias(){
+  // Siempre usa DATA completo — guías abiertas del mes anterior también se muestran
+  const openItems = DATA.filter(d=>d.estado==='EN_PROCESO'||d.estado==='DEVOLUCION');
+  const filtrados = getFDATA();
+  const mesAntItems = openItems.filter(d=>!filtrados.includes(d));
+  const banner = document.getElementById('mesant-guias');
+  if(banner) banner.style.display = mesAntItems.length ? 'flex' : 'none';
+
+  const sin24    = openItems.filter(d=>!d.guia&&d.estado==='EN_PROCESO'&&hoursAgo(d)>=24&&hoursAgo(d)<48).length;
+  const sin48    = openItems.filter(d=>!d.guia&&d.estado==='EN_PROCESO'&&hoursAgo(d)>=48).length;
+  const enCas    = openItems.filter(d=>d.guia&&d.estado==='EN_PROCESO'&&(diasDeGuia(d)??daysAgo(d))>=5).length;
+  const enOfic   = openItems.filter(d=>d.estado_carrier==='EN_OFICINA').length;
+  const enRiesgo = openItems.filter(d=>d.guia&&d.estado==='EN_PROCESO'&&getRiesgo(d).length>0&&(diasDeGuia(d)??daysAgo(d))<5).length;
+  const devs     = openItems.filter(d=>d.estado==='DEVOLUCION').length;
+  document.getElementById('bdg-guias').textContent = sin24+sin48+enCas+enOfic+enRiesgo+devs;
+
+  document.getElementById('kpi-guias').innerHTML = `
+    <div class="kpi ka"><div class="kpi-ico"><i class="fa-solid fa-clock"></i></div><div class="kpi-val">${sin24}</div><div class="kpi-lbl">>24h sin guía</div><div class="kpi-sub">Contactar proveedor</div></div>
+    <div class="kpi kr"><div class="kpi-ico"><i class="fa-solid fa-circle-xmark"></i></div><div class="kpi-val">${sin48}</div><div class="kpi-lbl">>48h sin guía</div><div class="kpi-sub">Ticket Dropi</div></div>
+    <div class="kpi kb"><div class="kpi-ico"><i class="fa-solid fa-headset"></i></div><div class="kpi-val">${enCas}</div><div class="kpi-lbl">>5d en tránsito</div><div class="kpi-sub">Abrir CAS</div></div>
+    <div class="kpi ka"><div class="kpi-ico"><i class="fa-solid fa-building"></i></div><div class="kpi-val">${enOfic}</div><div class="kpi-lbl">En oficina</div><div class="kpi-sub">Cliente debe recoger</div></div>
+    <div class="kpi kr" style="border-color:#fca5a5"><div class="kpi-ico"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="kpi-val">${enRiesgo}</div><div class="kpi-lbl">Riesgo devolución</div><div class="kpi-sub">Alertas históricas</div></div>
+    <div class="kpi kp"><div class="kpi-ico"><i class="fa-solid fa-scale-balanced"></i></div><div class="kpi-val">${devs}</div><div class="kpi-lbl">En devolución</div><div class="kpi-sub">Justificar indem.</div></div>
+  `;
+
+  if(!openItems.length){
+    document.getElementById('pac-rows').innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)"><i class="fa-solid fa-circle-check" style="font-size:24px;color:var(--green);display:block;margin-bottom:8px"></i>Sin alertas activas</div>';
+    return;
+  }
+
+  document.getElementById('pac-rows').innerHTML = openItems.map((d,i)=>{
+    const al = getGuiaAlert(d)||{nivel:'ok',tag:'act-ok',icon:'fa-circle-check',label:'Normal',accion:'Monitorear'};
+    const hrs = hoursAgo(d); const dias = daysAgo(d);
+    const isMesAnt = !filtrados.includes(d);
+    let btns = '';
+    if(al.nivel==='24h') btns=`<button class="copy-btn" onclick="copyToClipboard(\`${msgProveedor(d).replace(/`/g,"'")}\`,this)"><i class="fa-solid fa-copy"></i> Msg Proveedor</button>`;
+    else if(al.nivel==='48h') btns=`<button class="copy-btn" onclick="copyToClipboard(\`${msgTicketDropi(d).replace(/`/g,"'")}\`,this)"><i class="fa-solid fa-copy"></i> Ticket Dropi</button>`;
+    else if(al.nivel==='cas'||al.nivel==='cas2') btns=`<button class="copy-btn" onclick="copyToClipboard(\`${msgCAS(d).replace(/`/g,"'")}\`,this)"><i class="fa-solid fa-copy"></i> Msg CAS</button>`;
+    else if(al.nivel==='indem') btns=`<button class="copy-btn" onclick="openJustModal(${DATA.indexOf(d)})"><i class="fa-solid fa-scale-balanced"></i> Ver Justificación</button>`;
+    const dg  = diasDeGuia(d) !== null ? diasDeGuia(d) : dias;
+    const dt  = diasDespachoTardio(d);
+    const riesgosGuia = getRiesgo(d);
+    const rtagHtml = riesgosGuia.slice(0,2).map(r=>`<span class="rtag ${r.cls}" style="font-size:8px"><i class="fa-solid ${r.ico}" style="font-size:7px"></i> ${r.label}</span>`).join('');
+    return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;align-items:start;padding:11px 16px;border-bottom:1px solid var(--border);${isMesAnt?'background:var(--amber-l)':riesgosGuia.length?'background:#fff5f5':''}">
+      <div><span class="mono">#${d.id||'S/N'}</span>${isMesAnt?'<span class="act-chip act-mes-ant" style="margin-left:6px;font-size:9px">Mes ant.</span>':''}<br><span style="font-size:11px;color:var(--txt)">${d.cliente}</span><br><span style="font-size:10px;color:var(--muted)">${d.ciudad}</span></div>
+      <div>${carrBadge(d.carrier)}<br><span class="mono" style="font-size:9px">${d.guia||'SIN GUIA'}</span><br>${evPillCarrier(d)}</div>
+      <div><span style="font-size:10px;color:var(--muted)">${d.guia?`+${dg}d (guía)`:'+'+hrs+'h (orden)'}${dt>0?' · despachó +'+dt+'d tarde':''}</span><br><span class="act-chip ${al.tag}" style="font-size:9px"><i class="fa-solid ${al.icon}" style="font-size:8px"></i> ${al.label}</span><br><span style="font-size:9px;color:var(--muted)">${d.ult_mov||'—'}</span></div>
+      <div style="display:flex;flex-direction:column;gap:2px">${rtagHtml}</div>
+      <div><span style="font-size:11px;color:var(--txt2);display:block;margin-bottom:4px">→ ${al.accion}</span>${btns}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ══ WALLET ══ */
+function buildWallet(){
+  const DATA = getFDATA();
+  const walEnt = DATA.filter(d=>d.estado==='ENTREGADO'&&d.recaudo==='CON RECAUDO');
+  const walVal = walEnt.reduce((s,d)=>s+d.valor,0);
+  const walGan = walEnt.reduce((s,d)=>s+d.ganancia,0);
+  document.getElementById('kpi-wallet').innerHTML = `
+    <div class="kpi kg"><div class="kpi-ico"><i class="fa-solid fa-circle-check"></i></div><div class="kpi-val">${walEnt.length}</div><div class="kpi-lbl">Entregas CON RECAUDO</div></div>
+    <div class="kpi kb"><div class="kpi-ico"><i class="fa-solid fa-sack-dollar"></i></div><div class="kpi-val sm">${fmt(walVal)}</div><div class="kpi-lbl">Total wallet</div></div>
+    <div class="kpi ka"><div class="kpi-ico"><i class="fa-solid fa-chart-bar"></i></div><div class="kpi-val sm">${fmt(walEnt.length?Math.round(walVal/walEnt.length):0)}</div><div class="kpi-lbl">Promedio por pedido</div></div>
+    <div class="kpi kt"><div class="kpi-ico"><i class="fa-solid fa-leaf"></i></div><div class="kpi-val sm">${fmt(walGan)}</div><div class="kpi-lbl">Ganancia total</div></div>
+  `;
+  document.getElementById('tbl-wallet').innerHTML = walEnt.map((d,i)=>`
+    <tr><td style="color:var(--muted);font-size:11px">${i+1}</td><td class="mono">#${d.id||'—'}</td>
+    <td class="mono">${d.fecha}</td><td>${d.cliente}</td><td>${d.ciudad}</td>
+    <td>${carrBadge(d.carrier)}</td><td class="mono">${d.guia||'—'}</td>
+    <td style="color:var(--amber);font-weight:700">${fmt(d.valor)}</td>
+    <td style="color:var(--green);font-weight:700">${fmt(d.ganancia)}</td></tr>`).join('')
+    || '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Sin entregas con recaudo en el período</td></tr>';
+}
+
+/* ══ DEVOLUCIONES — muestra siempre todas las abiertas ══ */
+function buildDevoluciones(){
+  // Siempre muestra TODAS las devoluciones activas (incluyendo meses anteriores)
+  const allDev = DATA.filter(d=>d.estado==='DEVOLUCION');
+  const filtrados = getFDATA();
+  const mesAntDev = allDev.filter(d=>!filtrados.includes(d));
+  const banner = document.getElementById('mesant-dev');
+  if(banner) banner.style.display = mesAntDev.length ? 'flex' : 'none';
+
+  const devVal = allDev.reduce((s,d)=>s+d.valor,0);
+  document.getElementById('kpi-dev').innerHTML = `
+    <div class="kpi kr"><div class="kpi-ico"><i class="fa-solid fa-rotate-left"></i></div><div class="kpi-val">${allDev.length}</div><div class="kpi-lbl">Total devoluciones</div></div>
+    <div class="kpi kr"><div class="kpi-ico"><i class="fa-solid fa-circle-xmark"></i></div><div class="kpi-val">${allDev.filter(d=>daysAgo(d)>20).length}</div><div class="kpi-lbl">Nivel 1 — Reclamar</div><div class="kpi-sub">>20 días</div></div>
+    <div class="kpi ka"><div class="kpi-ico"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="kpi-val sm">${fmt(devVal)}</div><div class="kpi-lbl">Capital en riesgo</div></div>
+    <div class="kpi kb"><div class="kpi-ico"><i class="fa-solid fa-calendar-clock"></i></div><div class="kpi-val">${mesAntDev.length}</div><div class="kpi-lbl">Del mes anterior</div><div class="kpi-sub">Aún en proceso</div></div>
+  `;
+  document.getElementById('tbl-dev').innerHTML = allDev.map(d=>{
+    const dias = daysAgo(d);
+    const isMesAnt = !filtrados.includes(d);
+    return `<tr class="row-alert">
+      <td class="mono">#${d.id||'—'}</td><td class="mono">${d.fecha}</td><td>${d.cliente}</td>
+      <td>${d.ciudad}</td><td>${carrBadge(d.carrier)}</td>
+      <td style="color:var(--amber);font-weight:700">${fmt(d.valor)}</td>
+      <td style="font-size:11px">${d.ult_mov||'—'}</td>
+      <td style="color:var(--red);font-weight:700;text-align:center">+${dias}d</td>
+      <td><span class="pill ${dias>20?'pr':'pa'}">${dias>20?'Nivel 1':'En plazo'}</span></td>
+      <td style="font-size:11px">${isMesAnt?'<span class="act-chip act-mes-ant">Mes ant.</span> ':''} Dropi Garantías</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--muted)">Sin devoluciones activas</td></tr>';
+}
+
+/* ══ INDEMNIZACIONES ══ */
+let modalCurrentPedido = {};
+function genJustificacion(d){
+  const dias = daysAgo(d);
+  const guiaRepetida = INDEM_HIST.some(h=>h.guia===d.guia&&d.guia);
+  const alerta = guiaRepetida?'\n⚠️ ADVERTENCIA: Esta guía ya fue presentada. Revisar historial.\n':'';
+  return `${alerta}JUSTIFICACIÓN DE INDEMNIZACIÓN — TICKET CAS / DROPI GARANTÍAS
+═══════════════════════════════════════════════════════
+
+DATOS DEL PEDIDO
+  Número pedido  : #${d.id||'S/N'}
+  Fecha despacho : ${d.fecha}
+  Cliente        : ${d.cliente}
+  Ciudad / Dpto  : ${d.ciudad} / ${d.dpto||''}
+  Carrier        : ${d.carrier}
+  Guía           : ${d.guia||'SIN GUÍA GENERADA'}
+  Valor pedido   : ${fmt(d.valor)}
+  Estado actual  : ${d.estado}
+  Último mov.    : ${d.ult_mov||'—'}
+  Días transcurr.: +${dias} días desde el despacho
+
+DESCRIPCIÓN DEL CASO
+  El pedido #${d.id||'S/N'} fue despachado el ${d.fecha} a través de ${d.carrier}
+  con guía ${d.guia||'(no generada)'} hacia ${d.ciudad}.
+  Tras +${dias} días, el pedido se encuentra en estado
+  "${d.estado}" con último registro "${d.ult_mov||'—'}" sin entrega.${d.novedad?'\n  Novedad: '+d.novedad:''}
+
+ACCIONES PREVIAS
+  [x] Seguimiento en plataforma Dropi
+  [x] Revisión trazabilidad con ${d.carrier}
+  [ ] Contacto directo carrier (CAS)
+  [ ] Solicitud formal Dropi Garantías
+
+VALOR A INDEMNIZAR
+  Monto total: ${fmt(d.valor)}
+  Tipo recaudo: ${d.recaudo||'—'}
+
+SOLICITUD
+  Se solicita apertura formal de indemnización por ${fmt(d.valor)}
+  según política de garantías Dropi.
+  URL: app.dropi.co/dashboard/warranties
+  Fecha reporte: ${TODAY.toLocaleDateString('es-CO')}
+  Operador: Orvian Colombia`;
+}
+
+function openJustModal(idx){
+  const d = DATA[idx];
+  if(!d) return;
+  modalCurrentPedido = d;
+  document.getElementById('just-modal-title').textContent = `Justificación — #${d.id||'S/N'} · ${d.cliente}`;
+  document.getElementById('just-modal-text').textContent = genJustificacion(d);
+  document.getElementById('just-modal').classList.add('open');
+}
+function closeModal(){ document.getElementById('just-modal').classList.remove('open'); }
+function copyJust(){
+  const txt = document.getElementById('just-modal-text').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn = document.querySelector('.modal-foot .btn-primary');
+    btn.textContent='✅ Copiado!'; setTimeout(()=>{ btn.innerHTML='<i class="fa-solid fa-copy"></i> Copiar texto completo'; },2000);
+  });
+}
+function marcarPresentada(){
+  const d = modalCurrentPedido;
+  if(!d.guia&&!d.id) return;
+  if(INDEM_HIST.some(h=>h.guia===d.guia&&h.guia)){ alert('Esta guía ya está en el historial.'); return; }
+  INDEM_HIST.push({guia:d.guia||'SIN GUIA',pedido:d.id||'S/N',cliente:d.cliente,carrier:d.carrier,valor:d.valor,fecha_presentacion:TODAY.toISOString().slice(0,10),estado_reclamo:'Presentada — pendiente respuesta',obs:''});
+  alert('✅ Marcada como presentada.');
+  closeModal(); buildIndem();
+}
+
+function buildIndem(){
+  const allDev = DATA.filter(d=>d.estado==='DEVOLUCION');
+  const indemVal = allDev.reduce((s,d)=>s+d.valor,0);
+  document.getElementById('kpi-indem').innerHTML = `
+    <div class="kpi kr"><div class="kpi-ico"><i class="fa-solid fa-scale-balanced"></i></div><div class="kpi-val">${allDev.length}</div><div class="kpi-lbl">Reclamaciones activas</div></div>
+    <div class="kpi ka"><div class="kpi-ico"><i class="fa-solid fa-sack-xmark"></i></div><div class="kpi-val sm">${fmt(indemVal)}</div><div class="kpi-lbl">Monto reclamable</div></div>
+    <div class="kpi kb"><div class="kpi-ico"><i class="fa-solid fa-file-lines"></i></div><div class="kpi-val">${INDEM_HIST.length}</div><div class="kpi-lbl">Ya presentadas</div></div>
+    <div class="kpi kr"><div class="kpi-ico"><i class="fa-solid fa-lock"></i></div><div class="kpi-val">${allDev.filter(d=>d.guia&&INDEM_HIST.some(h=>h.guia===d.guia)).length}</div><div class="kpi-lbl">Guías en historial</div><div class="kpi-sub">No repetir</div></div>
+  `;
+  document.getElementById('indem-pac').innerHTML = allDev.length ? allDev.map((d,i)=>{
+    const dias = daysAgo(d);
+    const yaHist = d.guia&&INDEM_HIST.some(h=>h.guia===d.guia);
+    return `<div style="display:grid;grid-template-columns:80px 1fr 80px 110px 80px 80px 80px 130px;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);${yaHist?'opacity:.5':''}">
+      <span class="mono">#${d.id||'S/N'}</span>
+      <div><span style="font-size:11px;color:var(--txt)">${d.cliente}</span><br><span style="font-size:10px;color:var(--muted)">${d.ciudad}</span></div>
+      <span>${carrBadge(d.carrier)}</span>
+      <span class="mono" style="font-size:10px">${d.guia||'—'}</span>
+      <span style="color:var(--amber);font-weight:700;font-size:11px">${fmt(d.valor)}</span>
+      <span style="color:var(--red);font-weight:700">+${dias}d</span>
+      <span>${yaHist?'<span class="no-rep-badge"><i class="fa-solid fa-lock"></i> Ya env.</span>':'<span class="pill pg" style="font-size:9px">Disponible</span>'}</span>
+      <button class="copy-btn" onclick="openJustModal(${DATA.indexOf(d)})" style="font-size:10px"><i class="fa-solid fa-scale-balanced"></i> Abrir CAS</button>
+    </div>`;
+  }).join('') : '<div style="padding:30px;text-align:center;color:var(--muted)">Sin casos de indemnización activos.</div>';
+
+  // Historial
+  const noRepEl = document.getElementById('hist-no-rep');
+  noRepEl.innerHTML = !INDEM_HIST.length ? '<div style="padding:14px 16px;font-size:12px;color:var(--muted)">Historial vacío — usa "Marcar como presentada" en cada justificación.</div>'
+    : INDEM_HIST.map(h=>`<div class="hist-row"><span class="no-rep-badge"><i class="fa-solid fa-lock"></i> NO REPETIR</span><span class="mono" style="width:130px">${h.guia}</span><span style="font-family:monospace;font-size:10px;color:var(--muted);width:50px">#${h.pedido}</span><span style="flex:1">${h.cliente}</span><span style="color:var(--amber);font-weight:700;width:80px">${fmt(h.valor)}</span><span style="font-size:10px;color:var(--muted)">${h.fecha_presentacion}</span><span class="pill pa" style="margin-left:8px">${h.estado_reclamo}</span></div>`).join('');
+
+  document.getElementById('tbl-hist').innerHTML = !INDEM_HIST.length
+    ? '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Sin registros aún.</td></tr>'
+    : INDEM_HIST.map(h=>`<tr><td class="mono">${h.guia}</td><td class="mono">#${h.pedido}</td><td>${h.cliente}</td><td>${carrBadge(h.carrier)}</td><td style="color:var(--amber);font-weight:700">${fmt(h.valor)}</td><td class="mono">${h.fecha_presentacion}</td><td><span class="pill pa">${h.estado_reclamo}</span></td><td style="font-size:11px;color:var(--muted)">${h.obs||'—'}</td></tr>`).join('');
+}
+
+function downloadHistorialIndem(){
+  if(!INDEM_HIST.length){ alert('Historial vacío.'); return; }
+  const ws = XLSX.utils.json_to_sheet(INDEM_HIST.map(h=>({Guia:h.guia,Pedido:h.pedido,Cliente:h.cliente,Carrier:h.carrier,Valor:h.valor,FechaPresentacion:h.fecha_presentacion,EstadoReclamo:h.estado_reclamo,Obs:h.obs||''})));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,'HistorialIndem',ws);
+  XLSX.writeFile(wb,'HistorialIndemnizaciones_Orvian.xlsx');
+}
+
+/* ══ TRANSPORTADORAS ══ */
+function buildTransportadoras(){
+  const DATA = getFDATA();
+  const cars = ['COORDINADORA','INTERRAPIDISIMO','ENVIA','99MINUTOS'];
+  document.getElementById('carr-cards').innerHTML = cars.map(c=>{
+    const cD=DATA.filter(d=>d.carrier===c), cE=cD.filter(d=>d.estado==='ENTREGADO');
+    const tasa=pct(cE.length,cD.length);
+    return `<div class="kpi kb"><div class="kpi-ico"><i class="fa-solid fa-truck" style="color:${carrColor[c]}"></i></div><div class="kpi-val" style="color:${carrColor[c]}">${cD.length}</div><div class="kpi-lbl">${carrLabel[c]}</div><div class="kpi-sub">${cE.length} entregas · <strong style="color:${tasa>=70?'var(--green)':'var(--amber)'}">${tasa}%</strong><div class="prog" style="margin-top:5px"><div class="prog-fill" style="width:${tasa}%;background:${carrColor[c]}"></div></div></div></div>`;
+  }).join('');
+  makeChart('ch-car-est',{type:'bar',data:{labels:cars.map(c=>carrLabel[c]),datasets:[
+    {label:'Entregado',data:cars.map(c=>DATA.filter(d=>d.carrier===c&&d.estado==='ENTREGADO').length),backgroundColor:'#16a34a',borderRadius:3},
+    {label:'Cancelado',data:cars.map(c=>DATA.filter(d=>d.carrier===c&&d.estado==='CANCELADO').length),backgroundColor:'#d97706',borderRadius:3},
+    {label:'Devolución',data:cars.map(c=>DATA.filter(d=>d.carrier===c&&d.estado==='DEVOLUCION').length),backgroundColor:'#dc2626',borderRadius:3}
+  ]},options:{responsive:true,plugins:{legend:{labels:{color:'#374151',font:{size:10}}}},scales:{x:{stacked:true,ticks:{color:'#6b7280',font:{size:9}},grid:{display:false}},y:{stacked:true,ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}});
+  makeChart('ch-car-gan',{type:'bar',data:{labels:cars.map(c=>carrLabel[c]),datasets:[{data:cars.map(c=>DATA.filter(d=>d.carrier===c).reduce((s,d)=>s+d.ganancia,0)),backgroundColor:cars.map(c=>(carrColor[c]||'#2563eb')+'99'),borderColor:cars.map(c=>carrColor[c]||'#2563eb'),borderWidth:1,borderRadius:5}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#6b7280',font:{size:9},callback:v=>fmt(v)},grid:{color:'rgba(0,0,0,.04)'}}}}});
+  document.getElementById('tbl-carriers').innerHTML = `<thead><tr><th>Carrier</th><th>Órdenes</th><th>Entregadas</th><th>Canceladas</th><th>Devoluciones</th><th>Tasa entrega</th><th>Ingresos</th><th>Ganancia neta</th></tr></thead><tbody>`+
+    cars.map(c=>{
+      const cD=DATA.filter(d=>d.carrier===c), cE=cD.filter(d=>d.estado==='ENTREGADO');
+      const val=cE.reduce((s,d)=>s+d.valor,0), gan=cD.reduce((s,d)=>s+d.ganancia,0), tasa=pct(cE.length,cD.length);
+      return `<tr><td>${carrBadge(c)}</td><td>${cD.length}</td><td style="color:var(--green)">${cE.length}</td><td style="color:var(--amber)">${cD.filter(d=>d.estado==='CANCELADO').length}</td><td style="color:var(--red)">${cD.filter(d=>d.estado==='DEVOLUCION').length}</td><td><span class="pill ${tasa>=70?'pg':'pa'}">${tasa}%</span></td><td style="font-weight:600">${fmt(val)}</td><td style="color:var(--green);font-weight:600">${fmt(gan)}</td></tr>`;
+    }).join('')+'</tbody>';
+}
+
+/* ══ CIUDADES ══ */
+function buildCiudades(){
+  const DATA = getFDATA();
+  const cityMap={}, dptoMap={};
+  DATA.forEach(d=>{ cityMap[d.ciudad]=(cityMap[d.ciudad]||0)+1; dptoMap[d.dpto]=(dptoMap[d.dpto]||0)+1; });
+  const sorted=Object.entries(cityMap).sort((a,b)=>b[1]-a[1]); const max=sorted[0]?.[1]||1;
+  document.getElementById('city-list').innerHTML = sorted.slice(0,12).map(([c,n])=>`<div class="city-bar"><span class="city-name">${c}</span><div class="city-track"><div class="city-fill" style="width:${Math.round(n/max*100)}%"></div></div><span class="city-num">${n}</span></div>`).join('') || '<div style="padding:20px;color:var(--muted)">Sin datos</div>';
+  const dpts=Object.entries(dptoMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const cols=['#2563eb','#d97706','#16a34a','#dc2626','#0d9488','#7c3aed','#f59e0b','#6b7280','#34d399','#fb923c'];
+  makeChart('ch-dpto',{type:'doughnut',data:{labels:dpts.map(d=>d[0]),datasets:[{data:dpts.map(d=>d[1]),backgroundColor:cols,borderWidth:0,hoverOffset:6}]},options:{responsive:true,cutout:'50%',plugins:{legend:{position:'bottom',labels:{color:'#374151',font:{size:9},padding:6}}}}});
+}
+
+/* ══ LECCIÓN CASOS ══ */
+function buildLeccion(){
+  const resueltos = DATA.filter(d=>d.caso_status===5);
+  if(!resueltos.length){
+    document.getElementById('leccion-body').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)"><i class="fa-solid fa-book-open" style="font-size:32px;margin-bottom:12px;display:block;opacity:.3"></i>Las lecciones aparecerán aquí cuando haya casos con estado Resuelto.</div>';
+    return;
+  }
+  document.getElementById('leccion-body').innerHTML = resueltos.map(d=>`
+    <div class="tl-row"><div class="tl-dot"><i class="fa-solid fa-graduation-cap" style="font-size:10px"></i></div>
+    <div class="tl-body"><div class="tl-ttl">#${d.id||'—'} · ${d.cliente}</div>
+    <div class="tl-date">${d.fecha} · ${d.ciudad} · ${carrLabel[d.carrier]||d.carrier}</div>
+    <div class="tl-desc">${d.novedad?'Novedad: '+d.novedad+'<br>':''}<span style="color:var(--green)">Resuelto</span> ${d.fecha_reembolso?'· Reembolso: '+fmt(d.monto_reembolsado||0)+' el '+d.fecha_reembolso:''}</div>
+    </div></div>`).join('');
+}
+
+/* ══ PLAN DEL DÍA ══ */
+function buildPlanDia(){
+  const hoy = new Date();
+  const diasSemana = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  document.getElementById('plandia-fecha').textContent =
+    diasSemana[hoy.getDay()]+' '+hoy.getDate()+' de '+meses[hoy.getMonth()]+' '+hoy.getFullYear();
+
+  /* ── clasificación por prioridad ── */
+  const sin48=[],sin24=[],enCas=[],enOficina=[],enRiesgo=[],devs=[],novs=[],normales=[];
+
+  DATA.filter(d=>d.estado==='EN_PROCESO'||d.estado==='DEVOLUCION').forEach(d=>{
+    const hrs = hoursAgo(d);
+    const dg  = diasDeGuia(d) !== null ? diasDeGuia(d) : daysAgo(d);
+
+    if(d.estado==='DEVOLUCION'){ devs.push(d); return; }
+
+    /* sin guía → urgencia por horas desde orden */
+    if(!d.guia){
+      if(hrs>=48){ sin48.push(d); return; }
+      if(hrs>=24){ sin24.push(d); return; }
+      normales.push(d); return;
+    }
+
+    /* con guía → evaluar estados especiales primero */
+    if(d.estado_carrier==='EN_OFICINA'){ enOficina.push(d); return; }
+    if(dg>=5){ enCas.push(d); return; }
+
+    /* riesgo predictivo: guía <5d pero con señales de alerta */
+    if(getRiesgo(d).length > 0){ enRiesgo.push(d); return; }
+
+    normales.push(d);
+  });
+  DATA.filter(d=>d.nov_activa && d.estado!=='EN_PROCESO' && d.estado!=='DEVOLUCION').forEach(d=>novs.push(d));
+
+  const totalAcciones = sin48.length+sin24.length+enCas.length+enOficina.length+enRiesgo.length+devs.length+novs.length;
+  document.getElementById('bdg-dia').textContent = totalAcciones;
+
+  /* ── KPI cards ── */
+  document.getElementById('kpi-dia').innerHTML = `
+    <div class="kpi kr"><div class="kpi-ico"><i class="fa-solid fa-circle-xmark"></i></div><div class="kpi-val">${sin48.length}</div><div class="kpi-lbl">Urgente sin guía</div><div class="kpi-sub">>48h</div></div>
+    <div class="kpi ka"><div class="kpi-ico"><i class="fa-solid fa-clock"></i></div><div class="kpi-val">${sin24.length}</div><div class="kpi-lbl">Seguimiento</div><div class="kpi-sub">24–48h sin guía</div></div>
+    <div class="kpi kb"><div class="kpi-ico"><i class="fa-solid fa-headset"></i></div><div class="kpi-val">${enCas.length}</div><div class="kpi-lbl">En CAS</div><div class="kpi-sub">>5d en tránsito</div></div>
+    <div class="kpi ka"><div class="kpi-ico"><i class="fa-solid fa-building"></i></div><div class="kpi-val">${enOficina.length}</div><div class="kpi-lbl">En oficina</div><div class="kpi-sub">Cliente debe recoger</div></div>
+    <div class="kpi kr" style="border-color:#fca5a5"><div class="kpi-ico"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="kpi-val">${enRiesgo.length}</div><div class="kpi-lbl">Riesgo devolución</div><div class="kpi-sub">Historial alertas</div></div>
+    <div class="kpi kp"><div class="kpi-ico"><i class="fa-solid fa-rotate-left"></i></div><div class="kpi-val">${devs.length}</div><div class="kpi-lbl">Devoluciones</div><div class="kpi-sub">Indemnización</div></div>
+  `;
+
+  const _tlBtn = (i) => `<button class="copy-btn" style="border-color:#bfdbfe;color:#2563eb;font-size:9px" onclick="openTimeline(${i})"><i class="fa-solid fa-timeline"></i> Ver historial</button>`;
+
+  /* ── fila estándar (sin guía o con guía normal/CAS) ── */
+  function fila(d){
+    const i   = DATA.indexOf(d);
+    const hrs = hoursAgo(d);
+    const dg  = diasDeGuia(d) !== null ? diasDeGuia(d) : daysAgo(d);
+    const dt  = diasDespachoTardio(d);
+    const tiempoLabel = d.guia ? `+${dg}d en tránsito` : `+${Math.round(hrs)}h sin guía`;
+    const despachoTag = dt > 0 ? `<span class="rtag rtag-amber"><i class="fa-solid fa-clock-rotate-left" style="font-size:8px"></i> Prov. +${dt}d tarde</span>` : '';
+    const alCopiar = al=>`{id:'${d.id}',cliente:'${d.cliente}',ciudad:'${d.ciudad}',carrier:'${d.carrier}',accion:'${al}',estado:'${d.estado}${d.estado_carrier?' ('+d.estado_carrier+')':''}'}`;
+    let btns='';
+    if(!d.guia && hrs>=48) btns=`<button class="copy-btn" onclick="copyToClipboard(\`${msgTicketDropi(d).replace(/`/g,"'")}\`,this,${alCopiar('Ticket Dropi')})"><i class="fa-solid fa-copy"></i> Ticket Dropi</button>`;
+    else if(!d.guia && hrs>=24) btns=`<button class="copy-btn" onclick="copyToClipboard(\`${msgProveedor(d).replace(/`/g,"'")}\`,this,${alCopiar('Msg Proveedor')})"><i class="fa-solid fa-copy"></i> Msg Proveedor</button>`;
+    else if(d.guia && dg>=5) btns=`<button class="copy-btn" onclick="copyToClipboard(\`${msgCAS(d).replace(/`/g,"'")}\`,this,${alCopiar('Msg CAS')})"><i class="fa-solid fa-copy"></i> Msg CAS</button>`;
+    if(d.estado==='DEVOLUCION') btns+=`<button class="copy-btn" onclick="openJustModal(${i})"><i class="fa-solid fa-scale-balanced"></i> Justif.</button>`;
+    btns += _tlBtn(i);
+    return `<div class="dia-row">
+      <div><span class="mono" style="font-size:10px">#${d.id||'—'}</span><br><span style="font-size:9px;color:var(--muted)">${d.fecha}</span></div>
+      <div><div style="font-weight:600">${d.cliente}</div><div style="font-size:10px;color:var(--muted)">${d.ciudad} · ${d.dpto||''}</div><div style="font-size:10px;color:var(--muted);margin-top:1px">${d.producto||''}</div></div>
+      <div>${carrBadge(d.carrier)}<br><span class="mono" style="font-size:9px;color:var(--muted)">${d.guia||'Sin guía'}</span><br>${evPillCarrier(d)}</div>
+      <div><span style="font-size:10px;font-weight:600;color:var(--txt2)">${tiempoLabel}</span><br><span style="font-size:9px;color:var(--muted)">${d.ult_mov||'—'}</span><br>${despachoTag}</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">${btns}</div>
+    </div>`;
+  }
+
+  /* ── fila en oficina ── */
+  function filaOficina(d){
+    const i = DATA.indexOf(d);
+    const dof = diasEnOficina(d);
+    const urgencia = dof>=3?'color:var(--red);font-weight:700':'color:var(--amber);font-weight:600';
+    const alCopiar = al=>`{id:'${d.id}',cliente:'${d.cliente}',ciudad:'${d.ciudad}',carrier:'${d.carrier}',accion:'${al}',estado:'EN_OFICINA +${dof}d'}`;
+    return `<div class="dia-row" style="background:linear-gradient(90deg,#fffbeb,var(--white))">
+      <div><span class="mono" style="font-size:10px">#${d.id||'—'}</span><br><span style="font-size:9px;color:var(--muted)">${d.fecha}</span></div>
+      <div><div style="font-weight:600">${d.cliente}</div><div style="font-size:10px;color:var(--muted)">${d.ciudad} · ${d.dpto||''}</div><div style="font-size:10px;color:var(--muted)">${d.producto||''}</div></div>
+      <div>${carrBadge(d.carrier)}<br><span class="mono" style="font-size:9px">${d.guia||'—'}</span><br><span class="ev-pill ep-bod">🏢 Oficina ${d.ciudad}</span></div>
+      <div><span style="font-size:10px;${urgencia}">En oficina +${dof}d</span><br>
+        <span style="font-size:9px;color:var(--muted)">${d.ult_mov||'—'}</span><br>
+        <span style="font-size:9px;color:var(--red)">${dof>=3?'⚠️ Retorno inminente':'Coordinar recogida'}</span></div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="copy-btn" style="border-color:#fde68a;color:#d97706" onclick="copyToClipboard(\`${msgOficina(d).replace(/`/g,"'")}\`,this,${alCopiar('Avisar cliente oficina')})"><i class="fa-solid fa-message"></i> Avisar cliente</button>
+        <button class="copy-btn" onclick="copyToClipboard(\`${msgRiesgoCarrier(d).replace(/`/g,"'")}\`,this,${alCopiar('Alertar carrier')})"><i class="fa-solid fa-truck"></i> Alertar carrier</button>
+        ${_tlBtn(i)}
+      </div>
+    </div>`;
+  }
+
+  /* ── fila riesgo devolución ── */
+  function filaRiesgo(d){
+    const i = DATA.indexOf(d);
+    const riesgos = getRiesgo(d);
+    const dg = diasDeGuia(d) !== null ? diasDeGuia(d) : daysAgo(d);
+    const dt = diasDespachoTardio(d);
+    const rtagHtml = riesgos.map(r=>`<span class="rtag ${r.cls}"><i class="fa-solid ${r.ico}" style="font-size:8px"></i> ${r.label}</span>`).join('');
+    const alCopiar = al=>`{id:'${d.id}',cliente:'${d.cliente}',ciudad:'${d.ciudad}',carrier:'${d.carrier}',accion:'${al}',estado:'RIESGO: ${riesgos.map(r=>r.tipo).join(',')}'}`;
+    return `<div class="dia-row row-risk">
+      <div><span class="mono" style="font-size:10px">#${d.id||'—'}</span><br><span style="font-size:9px;color:var(--muted)">${d.fecha}</span></div>
+      <div><div style="font-weight:600">${d.cliente}</div><div style="font-size:10px;color:var(--muted)">${d.ciudad} · ${d.dpto||''}</div><div style="font-size:10px;color:var(--muted)">${d.producto||''}</div></div>
+      <div>${carrBadge(d.carrier)}<br><span class="mono" style="font-size:9px">${d.guia||'—'}</span><br>${evPillCarrier(d)}</div>
+      <div><div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:3px">${rtagHtml}</div>
+        <span style="font-size:9px;color:var(--muted)">${d.ult_mov||'—'}</span><br>
+        <span style="font-size:9px;color:var(--muted)">Guía +${dg}d${dt>0?' · prov. tardó +'+dt+'d':''}</span>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="copy-btn" style="border-color:#fca5a5;color:#dc2626" onclick="copyToClipboard(\`${msgRiesgoCarrier(d).replace(/`/g,"'")}\`,this,${alCopiar('Alertar carrier riesgo')})"><i class="fa-solid fa-truck-fast"></i> Alertar carrier</button>
+        <button class="copy-btn" onclick="openJustModal(${i})"><i class="fa-solid fa-scale-balanced"></i> Prep. justif.</button>
+        ${_tlBtn(i)}
+      </div>
+    </div>`;
+  }
+
+  /* ── fila novedades ── */
+  function filaSimple(d){
+    const i = DATA.indexOf(d);
+    return `<div class="dia-row">
+      <span class="mono" style="font-size:10px">#${d.id||'—'}</span>
+      <div><div style="font-weight:600">${d.cliente}</div><div style="font-size:10px;color:var(--muted)">${d.ciudad}</div></div>
+      <div>${carrBadge(d.carrier)}<br><span class="mono" style="font-size:9px">${d.guia||'—'}</span></div>
+      <div style="font-size:11px;color:var(--red)">${d.novedad||'—'}</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="pill pr" style="font-size:9px">Sin resolver</span>${_tlBtn(i)}</div>
+    </div>`;
+  }
+
+  const empty = '<div class="dia-empty"><i class="fa-solid fa-circle-check" style="color:var(--green);margin-right:6px"></i>Sin tareas en esta categoría ✓</div>';
+
+  document.getElementById('cnt-48').textContent = sin48.length;
+  document.getElementById('bloque-48').innerHTML = sin48.length ? sin48.map(fila).join('') : empty;
+
+  document.getElementById('cnt-24').textContent = sin24.length;
+  document.getElementById('bloque-24').innerHTML = sin24.length ? sin24.map(fila).join('') : empty;
+
+  document.getElementById('cnt-cas').textContent = enCas.length;
+  document.getElementById('bloque-cas').innerHTML = enCas.length ? enCas.map(fila).join('') : empty;
+
+  document.getElementById('cnt-oficina').textContent = enOficina.length;
+  document.getElementById('bloque-oficina').innerHTML = enOficina.length ? enOficina.map(filaOficina).join('') : empty;
+
+  document.getElementById('cnt-riesgo').textContent = enRiesgo.length;
+  document.getElementById('bloque-riesgo').innerHTML = enRiesgo.length ? enRiesgo.map(filaRiesgo).join('') : empty;
+
+  document.getElementById('cnt-dev').textContent = devs.length;
+  document.getElementById('bloque-dev').innerHTML = devs.length ? devs.map(fila).join('') : empty;
+
+  document.getElementById('cnt-nov').textContent = novs.length;
+  document.getElementById('bloque-nov').innerHTML = novs.length ? novs.map(filaSimple).join('') : empty;
+
+  document.getElementById('cnt-ok').textContent = normales.length;
+  document.getElementById('bloque-ok').innerHTML = normales.length ? normales.map(fila).join('') : empty;
+}
+
+/* ══════════════════════════════════════════════════════
+   TRAZABILIDAD — Log de acciones + Línea de tiempo
+══════════════════════════════════════════════════════ */
+
+/* ── Persistencia en localStorage ── */
+const LS_KEY = 'orvian_accion_log_v1';
+let ACCION_LOG = [];
+try { ACCION_LOG = JSON.parse(localStorage.getItem(LS_KEY)||'[]'); } catch(e){ ACCION_LOG=[]; }
+function _saveLog(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(ACCION_LOG)); }catch(e){} }
+
+/* ── Registrar acción de la asesora ── */
+function logAccion(pedidoId, cliente, ciudad, carrier, accion, estadoAlMomento){
+  const now = new Date();
+  const entry = {
+    ts: now.toISOString(),
+    fecha: now.toLocaleDateString('es-CO'),
+    hora: now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
+    pedidoId, cliente, ciudad: ciudad||'—', carrier: carrier||'—',
+    accion, estadoAlMomento: estadoAlMomento||'—'
+  };
+  ACCION_LOG.unshift(entry); // más reciente primero
+  _saveLog();
+  // actualizar badge
+  const bdg = document.getElementById('bdg-trz');
+  if(bdg) bdg.textContent = ACCION_LOG.length;
+}
+
+/* ── Clasificar acción para chip de color ── */
+function _logChipClass(accion){
+  if(!accion) return 'la-trz';
+  const a = accion.toLowerCase();
+  if(a.includes('dropi'))  return 'la-risk';
+  if(a.includes('proveedor')) return 'la-prov';
+  if(a.includes('cas'))    return 'la-cas';
+  if(a.includes('carrier')) return 'la-cas';
+  if(a.includes('cliente') || a.includes('oficina')) return 'la-ofic';
+  if(a.includes('justif')) return 'la-risk';
+  return 'la-trz';
+}
+
+/* ── Exportar log a Excel ── */
+function exportLog(){
+  if(!ACCION_LOG.length){ alert('No hay acciones registradas aún.'); return; }
+  const ws = XLSX.utils.json_to_sheet(ACCION_LOG.map(e=>({
+    'Fecha':e.fecha, 'Hora':e.hora, 'Pedido':e.pedidoId,
+    'Cliente':e.cliente, 'Ciudad':e.ciudad, 'Carrier':e.carrier,
+    'Acción':e.accion, 'Estado al momento':e.estadoAlMomento
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,'Log Trazabilidad',ws);
+  XLSX.writeFile(wb,'Trazabilidad_Orvian_'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+
+/* ── Limpiar log ── */
+function clearLog(){
+  if(!confirm('¿Limpiar todo el log de trazabilidad? Esta acción no se puede deshacer.')) return;
+  ACCION_LOG=[];
+  _saveLog();
+  buildTrazabilidad();
+}
+
+/* ── Construir pestaña Trazabilidad ── */
+function buildTrazabilidad(){
+  const filAccion = (document.getElementById('log-filter-accion')||{}).value||'';
+  const filPeriodo = (document.getElementById('log-filter-hoy')||{}).value||'';
+  const hoyStr = TODAY.toLocaleDateString('es-CO');
+
+  let rows = ACCION_LOG.filter(e=>{
+    if(filAccion && !e.accion.toLowerCase().includes(filAccion.toLowerCase())) return false;
+    if(filPeriodo==='hoy' && e.fecha!==hoyStr) return false;
+    if(filPeriodo==='semana'){
+      const d=new Date(e.ts); const diff=Math.round((TODAY-d)/86400000);
+      if(diff>7) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('log-count').textContent = rows.length;
+  const bdg = document.getElementById('bdg-trz');
+  if(bdg) bdg.textContent = ACCION_LOG.length;
+
+  // KPIs
+  const hoyRows = ACCION_LOG.filter(e=>e.fecha===hoyStr);
+  const tiposHoy = {};
+  hoyRows.forEach(e=>{ tiposHoy[e.accion]=(tiposHoy[e.accion]||0)+1; });
+  document.getElementById('trz-kpis').innerHTML = `
+    <div class="kpi kt"><div class="kpi-ico"><i class="fa-solid fa-clipboard-list"></i></div><div class="kpi-val">${ACCION_LOG.length}</div><div class="kpi-lbl">Total acciones</div><div class="kpi-sub">En historial</div></div>
+    <div class="kpi kb"><div class="kpi-ico"><i class="fa-solid fa-calendar-day"></i></div><div class="kpi-val">${hoyRows.length}</div><div class="kpi-lbl">Acciones hoy</div><div class="kpi-sub">${hoyStr}</div></div>
+    <div class="kpi kr"><div class="kpi-ico"><i class="fa-solid fa-ticket"></i></div><div class="kpi-val">${ACCION_LOG.filter(e=>e.accion.toLowerCase().includes('dropi')).length}</div><div class="kpi-lbl">Tickets Dropi</div></div>
+    <div class="kpi ka"><div class="kpi-ico"><i class="fa-solid fa-headset"></i></div><div class="kpi-val">${ACCION_LOG.filter(e=>e.accion.toLowerCase().includes('cas')).length}</div><div class="kpi-lbl">Mensajes CAS</div></div>
+    <div class="kpi kg"><div class="kpi-ico"><i class="fa-solid fa-check-double"></i></div><div class="kpi-val">${new Set(ACCION_LOG.map(e=>e.pedidoId)).size}</div><div class="kpi-lbl">Pedidos gestionados</div></div>
+  `;
+
+  const tbody = document.getElementById('log-body');
+  if(!rows.length){
+    tbody.innerHTML = `<tr><td colspan="7" class="log-empty">
+      <i class="fa-solid fa-timeline" style="font-size:28px;opacity:.3;display:block;margin-bottom:10px"></i>
+      Aún no hay acciones registradas.<br>
+      <span style="font-size:10px">Cada vez que copies un mensaje (Ticket Dropi, Msg CAS, Alertar carrier…) quedará registrado aquí automáticamente.</span>
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(e=>`<tr>
+    <td><span style="font-weight:700;color:var(--txt)">${e.fecha}</span><br><span style="font-size:10px;color:var(--muted)">${e.hora}</span></td>
+    <td><span class="mono" style="font-size:10px;color:var(--blue)">#${e.pedidoId}</span></td>
+    <td style="font-weight:600">${e.cliente}</td>
+    <td style="color:var(--muted)">${e.ciudad}</td>
+    <td><span class="log-accion ${_logChipClass(e.accion)}">${e.accion}</span></td>
+    <td>${carrBadge(e.carrier)||e.carrier}</td>
+    <td style="font-size:10px;color:var(--muted)">${e.estadoAlMomento}</td>
+  </tr>`).join('');
+}
+
+/* ══ LÍNEA DE TIEMPO POR PEDIDO ══ */
+function openTimeline(idx){
+  const d = DATA[idx];
+  if(!d) return;
+  document.getElementById('tl-modal-title').textContent = `#${d.id} — ${d.cliente}`;
+  document.getElementById('tl-modal-sub').textContent = `${d.producto||''} · ${d.ciudad}, ${d.dpto||''} · ${fmt(d.valor)}`;
+  document.getElementById('tl-events').innerHTML = buildTimeline(d, idx);
+  document.getElementById('tl-overlay').classList.add('open');
+}
+function closeTL(){ document.getElementById('tl-overlay').classList.remove('open'); }
+
+function buildTimeline(d, idx){
+  const events = [];
+
+  // 1. Pedido creado
+  events.push({
+    ts: d.fecha, dot:'td-blue', ico:'fa-plus',
+    titulo:'Pedido creado',
+    detalle:`${d.producto||'—'} · ${fmt(d.valor)} · Origen: ${d.origen||'—'}`,
+    chips:[]
+  });
+
+  // 2. Guía generada (o sin guía)
+  if(d.fecha_guia){
+    const dt = diasDespachoTardio(d);
+    events.push({
+      ts: d.fecha_guia, dot: dt>2?'td-amber':'td-green', ico:'fa-barcode',
+      titulo:`Guía generada — ${d.guia}`,
+      detalle:`${carrLabel[d.carrier]||d.carrier}${dt>0?` · El proveedor tardó ${dt}d en despachar desde la orden`:''}`,
+      chips: dt>2?[{txt:`Despacho tardío +${dt}d`,cls:'tc-warn'}]:[{txt:'Despacho a tiempo',cls:'tc-ok'}]
+    });
+  } else if(d.estado==='EN_PROCESO'){
+    const hrs = hoursAgo(d);
+    events.push({
+      ts: d.fecha, dot:'td-red', ico:'fa-circle-xmark',
+      titulo:'Sin guía generada',
+      detalle:`Han transcurrido ${Math.round(hrs)} horas desde la orden sin guía de envío`,
+      chips:[{txt:hrs>=48?'>48h URGENTE':'>24h Seguimiento',cls:hrs>=48?'tc-err':'tc-warn'}]
+    });
+  }
+
+  // 3. Alertas históricas acumuladas
+  const histLabels = {
+    'GUIA_48H':'Sin guía >48h — Ticket Dropi abierto',
+    'DESPACHO_TARDIO':'Proveedor despachó tardíamente',
+    'INTENTO_FALLIDO':'Intento de entrega fallido',
+    'SIN_INTENTO':'Sin intento de entrega registrado',
+    'CAS_5D':'Caso CAS abierto por tránsito prolongado',
+    'EN_BODEGA':'Paquete retenido en bodega',
+    'DEVOLUCION':'Pedido en devolución'
+  };
+  const histVisto = new Set();
+  (d.alertas_hist||[]).forEach(h=>{
+    if(histVisto.has(h)) return;
+    histVisto.add(h);
+    if(histLabels[h]) events.push({
+      ts:'Histórico', dot:'td-amber', ico:'fa-triangle-exclamation',
+      titulo:'Alerta registrada en historial',
+      detalle: histLabels[h],
+      chips:[{txt:h,cls:'tc-warn'}]
+    });
+  });
+
+  // 4. En oficina
+  if(d.fecha_en_oficina){
+    const dof = diasEnOficina(d);
+    events.push({
+      ts: d.fecha_en_oficina, dot:'td-purple', ico:'fa-building',
+      titulo:'Paquete dejado en oficina',
+      detalle:`${carrLabel[d.carrier]||d.carrier} — ${d.ciudad}. Cliente tiene 3 días para recoger antes del retorno.`,
+      chips:[{txt:`En oficina +${dof}d`,cls:dof>=3?'tc-err':'tc-warn'}]
+    });
+  }
+
+  // 5. Último evento del carrier
+  if(d.ult_mov && d.estado!=='ENTREGADO'){
+    const dg = diasDeGuia(d);
+    events.push({
+      ts:'Último registro', dot: d.estado_carrier==='INTENTO_FALLIDO'?'td-red':d.estado_carrier==='EN_RUTA'?'td-green':'td-amber',
+      ico: d.estado_carrier==='EN_RUTA'?'fa-truck':d.estado_carrier==='INTENTO_FALLIDO'?'fa-ban':d.estado_carrier==='BODEGA'?'fa-warehouse':d.estado_carrier==='EN_OFICINA'?'fa-building':'fa-circle-info',
+      titulo: d.ult_mov,
+      detalle:`Estado carrier: ${d.estado_carrier||'—'}${dg!==null?' · Guía activa hace '+dg+'d':''} · Intentos de entrega: ${d.intentos_entrega||0}`,
+      chips: getRiesgo(d).slice(0,2).map(r=>({txt:r.label,cls:'tc-err'}))
+    });
+  }
+
+  // 6. Estado final si entregado o devuelto
+  if(d.estado==='ENTREGADO'){
+    events.push({ts:'Entregado', dot:'td-green', ico:'fa-circle-check',
+      titulo:'✅ Pedido entregado exitosamente',
+      detalle:`${d.ult_mov||'Entregado'}`,
+      chips:[{txt:'ENTREGADO',cls:'tc-ok'}]});
+  }
+  if(d.estado==='DEVOLUCION'){
+    events.push({ts:'Devolución', dot:'td-red', ico:'fa-rotate-left',
+      titulo:'↩ Pedido en devolución',
+      detalle:`${d.ult_mov||'—'} · Capital en riesgo: ${fmt(d.valor)}`,
+      chips:[{txt:'DEVOLUCIÓN',cls:'tc-err'},{txt:'Preparar justif.',cls:'tc-warn'}]});
+  }
+
+  // 7. Acciones de la asesora (del log)
+  const accionesDelPedido = ACCION_LOG.filter(e=>e.pedidoId===d.id);
+  accionesDelPedido.forEach(e=>{
+    events.push({
+      ts:`${e.fecha} ${e.hora}`, dot:'td-green', ico:'fa-user-check',
+      titulo:`Acción: ${e.accion}`,
+      detalle:`Mensaje generado y copiado. Estado al momento: ${e.estadoAlMomento}`,
+      chips:[{txt:'Asesora accionó',cls:'tc-ok'}]
+    });
+  });
+
+  return events.map(ev=>`
+    <div class="tl-event">
+      <div class="tl-dot ${ev.dot}"><i class="fa-solid ${ev.ico}"></i></div>
+      <div class="tl-ts">${ev.ts}</div>
+      <div class="tl-desc">${ev.titulo}</div>
+      ${ev.detalle?`<div class="tl-detail">${ev.detalle}</div>`:''}
+      ${ev.chips&&ev.chips.length?`<div style="margin-top:4px">${ev.chips.map(c=>`<span class="tl-chip ${c.cls}">${c.txt}</span>`).join('')}</div>`:''}
+    </div>`).join('');
+}
+
+function copyToClipboard(text, btnEl, logData){
+  navigator.clipboard.writeText(text).then(()=>{
+    const origHtml = btnEl.innerHTML;
+    btnEl.classList.add('copied');
+    btnEl.innerHTML='<i class="fa-solid fa-check"></i> Copiado';
+    setTimeout(()=>{ btnEl.classList.remove('copied'); btnEl.innerHTML=origHtml; },2000);
+    // registrar en log si se proporcionaron datos
+    if(logData && logData.id){
+      logAccion(logData.id, logData.cliente, logData.ciudad, logData.carrier, logData.accion, logData.estado);
+      const bdg = document.getElementById('bdg-trz');
+      if(bdg) bdg.textContent = ACCION_LOG.length;
+    }
+  });
+}
+
+/* ══ INIT ══ */
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('tb-date').textContent = new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  function _initReporte(){
+    setPreset('month');
+    _updateNavButtons();
+    buildPlanDia();
+    // badge trazabilidad
+    const bdg = document.getElementById('bdg-trz');
+    if(bdg) bdg.textContent = ACCION_LOG.length;
+  }
+
+  // Modo GitHub Pages: carga pedidos.json externo y reemplaza DATA
+  if(window.location.protocol !== 'file:'){
+    const bannerEl = document.getElementById('efect-banner');
+    if(bannerEl) bannerEl.innerHTML = '<div style="background:var(--blue-l);border:1px solid var(--blue-b);border-radius:var(--r);padding:12px 18px;font-size:12px;color:var(--blue);font-weight:600"><i class="fa-solid fa-rotate fa-spin" style="margin-right:8px"></i>Cargando datos desde la nube…</div>';
+    fetch('data/pedidos.json?v='+Date.now())
+      .then(r=>{ if(!r.ok) throw new Error('sin datos'); return r.json(); })
+      .then(rows=>{
+        DATA.length = 0; // limpiar datos de ejemplo
+        rows.forEach(r=>DATA.push(r));
+        const chip = document.querySelector('.demo-chip');
+        if(chip){ chip.textContent='☁️ Datos en vivo'; chip.style.background='var(--teal-l)'; chip.style.color='var(--teal)'; chip.style.borderColor='var(--teal-b)'; }
+        _initReporte();
+      })
+      .catch(()=>{
+        // Si no hay JSON aún, usa datos de ejemplo embebidos
+        console.warn('pedidos.json no encontrado — usando datos de ejemplo');
+        _initReporte();
+      });
+  } else {
+    // Modo local: usa DATA embebida directamente
+    _initReporte();
+  }
+});
+</script>
+</body>
+</html>
